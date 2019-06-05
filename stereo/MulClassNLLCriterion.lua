@@ -19,16 +19,13 @@ function MulClassNLLCriterion:__init(gt_weight)
     end
 
     assert(self.gt_weight:nElement() % 2 == 1, 'nElement of gt_weight should be odd')
-    self.half_width = (self.gt_weight:nElement() - 1)/ 2
+    
+    self.half_width = (self.gt_weight:nElement() - 1) / 2
 end
-
-
-
 
 function MulClassNLLCriterion:__len()
     return 0
 end
-
 
 function MulClassNLLCriterion:updateOutput(input, target)
     assert(type(target) ~= 'number', 'target should be a tensor')
@@ -39,13 +36,13 @@ function MulClassNLLCriterion:updateOutput(input, target)
         self.target = target:long()
     end
 
-    -- has dimension for batch-size
     assert(input:dim() == 2 and target:dim() == 2, 'input should be 2D')
     assert(target:size(2) == 1, string.format('only support 1 gt locaton, got: %d', target:size(2)))
+
     self.output = 0
-    for i = 1,input:size(1) do
-        local s,e = math.max(1,target[i][1]-self.half_width), math.min(input:size(2),target[i][1]+self.half_width)
-        self.output = self.output - torch.cmul(input[{i,{s,e}}], self.gt_weight[{{self.half_width+1-(target[i][1]-s), self.half_width+1+e-target[i][1]}}]):sum()
+    for i = 1, input:size(1) do
+        local s, e = math.max(1, target[i][1] - self.half_width), math.min(input:size(2), target[i][1] + self.half_width)
+        self.output = self.output - torch.cmul(input[{i, {s, e}}], self.gt_weight[{{self.half_width + 1 - (target[i][1] - s), self.half_width + 1 + e - target[i][1]}}]):sum()
     end
     return self.output
 end
@@ -60,11 +57,11 @@ function MulClassNLLCriterion:updateGradInput(input, target)
     end
 
     assert(input:dim() == 2, 'input should be 2D')
+
     self.gradInput:resizeAs(input):zero()
-    
-    for i = 1,input:size(1) do
-        local s,e = math.max(1,target[i][1]-self.half_width), math.min(input:size(2),target[i][1]+self.half_width)
-        self.gradInput[{i,{s,e}}]:copy(self.gt_weight[{{self.half_width+1-(target[i][1]-s), self.half_width+1+e-target[i][1]}}]):mul(-1)
+    for i = 1, input:size(1) do
+        local s, e = math.max(1, target[i][1] - self.half_width), math.min(input:size(2), target[i][1] + self.half_width)
+        self.gradInput[{i, {s, e}}]:copy(self.gt_weight[{{self.half_width + 1 - (target[i][1] - s), self.half_width + 1 + e - target[i][1]}}]):mul(-1)
     end
     return self.gradInput
 end

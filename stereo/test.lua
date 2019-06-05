@@ -15,67 +15,50 @@ require 'TestDataHandler'
 local c = require 'trepl.colorize'
 lapp = require 'pl.lapp'
 opt = lapp[[
-    --folder_name              (default '')
-    --dual_net                 (default 1)
-    --data_version             (default "kitti2015")
-    -g, --gpuid                (default 0)                  gpu id
-    --test_num                   (default 10)               test images
-    --model                    (default dot_win37_dep9)     model name
-    --data_root                (default "/ais/gobi3/datasets/kitti/scene_flow/training") dataset root folder
-    --util_root                (default "")                 dataset root folder
-    --tb                       (default 100)                test batch size
-    --type                     (default 'normal')           normal, small, tiny (size of dataset used)
-    --invert                   (default 0)                  switch lwir-rgb images
-    --share                    (default 1)                  share params or not
-
-    --psz                      (default 9)                  half width
-    --half_range               (default 100)                half range
+    --folder_name              (default '')                    folder of .t7 files
+    -g, --gpuid                (default 0)                     gpu id
+    --test_num                 (default 10)                    number of test images
+    --data_root                (default '')                    dataset root folder (images)
+    --util_root                (default '')                    points location root folder (.bin files)
+    --tb                       (default 100)                   test batch size
+    --psz                      (default 18)                    half width
+    --half_range               (default 60)                    half range
+    --fold                     (default 1)                     fold number (1, 2 or 3)
 ]]
 
-half_range = opt.half_range
-model_name = opt.model
 model_params = opt.folder_name .. '/param_epoch_200.t7'
 model_bnmeanstd = opt.folder_name .. '/bn_meanvar_epoch_200.t7'
-
-print(opt)
 
 print(c.blue '==>' ..' configuring model')
 
 torch.manualSeed(123)
-cutorch.setDevice(opt.gpuid+1)
+gpu = opt.gpuid + 1
+cutorch.setDevice(gpu)
 torch.setdefaulttensortype('torch.FloatTensor')
 
-extension = '.jpg'
-val_bin = 'gab_test'
-offset = 0
-if opt.data_version == 'stcharles' then
-    extension = '.png'
-    val_bin = 'plsc_test'
-elseif opt.data_version == 'all' then
-    extension = '.png'
-    test_bin = 'all_test'
-    offset = 1012 -- 1 = 1012, 2 = 940, 3 = 984
-end
+-- number of the 1st image in the test set, depending on the fold
+offset = -1
+if opt.fold == 1 then
+    offset = 1012
+elseif opt.fold == 2 then
+    offset = 940
+elseif opt.fold == 3 then
+    offset = 984
 
-data_type = opt.type
+print(c.blue '==>' ..' loading test data')
 
-print(c.blue '==>' ..' loading data')
+dataset = TestDataHandler(opt.data_root, opt.util_root, opt.test_num, opt.psz, opt.half_range, opt.fold, gpu, offset)
 
-my_dataset = TestDataHandler(opt.data_root, opt.util_root, opt.test_num, opt.psz, opt.half_range, 1, test_bin, extension, data_type, offset, opt.invert)
-
-local function load_model_dual()
-    require('models/' .. model_name .. '.lua')
+local function load_model()
+    require('model.lua')
     model = nn.Sequential()
-    model_p = nn.ParallelTable()
-    l_model = create_model(half_range*2 + 1, 3):cuda()
-    r_model = create_model(half_range*2 + 1, 3):cuda()
-    if opt.share == 0 then
-        r_model = l_model:clone('weight','bias','gradWeight','gradBias')
-    end
-    model_p:add(l_model):add(r_model)
-    model:add(model_p)
+    parallel = nn.ParallelTable()
+    left = create_model(opt.half_range * 2 + 1, 3):cuda()
+    right = create_model(opt.half_range * 2 + 1, 3):cuda()
+    right = l_model:clone('weight','bias','gradWeight','gradBias')
+    parallel:add(left):add(right)
+    model:add(parallel)
     model:add(nn.CAddTable():cuda())
-    print(model)
 
     local model_param, model_grad_param = model:getParameters()
     print(string.format('number of parameters: %d', model_param:nElement()))
@@ -96,34 +79,11 @@ local function load_model_dual()
         end
     end
 end
-
-local function load_model()
-    require('models/' .. model_name .. '.lua')
-    model = create_model(half_range*2 + 1, 3):cuda()
-
-    local model_param, model_grad_param = model:getParameters()
-    print(string.format('number of parameters: %d', model_param:nElement()))
-    
-    print(c.blue '==>' ..' loading parameters')
-    -- load parameters
-    local params = torch.load(model_params)
-    assert(params:nElement() == model_param:nElement(), string.format('%s: %d vs %d', 'loading parameters: dimension mismatch.', params:nElement(), model_param:nElement()))
-    model_param:copy(params)
-
-    if(string.len(model_bnmeanstd) > 0) then 
-        local bn_mean, bn_std = table.unpack(torch.load(model_bnmeanstd))
-
-        for k,v in pairs(model:findModules('nn.SpatialBatchNormalization')) do
-            v.running_mean:copy(bn_mean[k])
-            v.running_var:copy(bn_std[k])
-        end
-    end
-end
      
 acc_count = 0
 function evaluate()
     -- compute 3-pixel error
-    local l, r, tar, ll, rr = my_dataset:get_test_cuda()
+    local l, r, tar, ll, rr = dataset:get_test_cuda()
     local n = (#l)[1]
     left_model = model
     left_model:evaluate()
@@ -147,9 +107,5 @@ function evaluate()
 
 end
 
-if opt.dual_net == 1 then
-    load_model_dual()
-else
-    load_model()
-end
+load_model()
 evaluate()
