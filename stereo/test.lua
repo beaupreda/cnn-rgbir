@@ -17,7 +17,7 @@ lapp = require 'pl.lapp'
 opt = lapp[[
     --folder_name              (default '')                    folder of .t7 files
     -g, --gpuid                (default 0)                     gpu id
-    --test_num                 (default 10)                    number of test images
+    --test_nb                  (default 10)                    number of test images
     --data_root                (default '')                    dataset root folder (images)
     --util_root                (default '')                    points location root folder (.bin files)
     --tb                       (default 100)                   test batch size
@@ -32,7 +32,7 @@ model_bnmeanstd = opt.folder_name .. '/bn_meanvar_epoch_200.t7'
 print(c.blue '==>' ..' configuring model')
 
 torch.manualSeed(42)
-gpu = opt.gpuid + 1
+local gpu = opt.gpuid + 1
 cutorch.setDevice(gpu)
 torch.setdefaulttensortype('torch.FloatTensor')
 
@@ -54,7 +54,6 @@ local function load_model()
     model = nn.Sequential()
     parallel = nn.ParallelTable()
     left = create_model(opt.half_range * 2 + 1, 3):cuda()
-    right = create_model(opt.half_range * 2 + 1, 3):cuda()
     right = left:clone('weight','bias','gradWeight','gradBias')
     parallel:add(left):add(right)
     model:add(parallel)
@@ -73,7 +72,7 @@ local function load_model()
         local bn_mean, bn_std = table.unpack(torch.load(model_bnmeanstd))
         print(bn_mean[k])
 
-        for k,v in pairs(model:findModules('nn.SpatialBatchNormalization')) do
+        for k, v in pairs(model:findModules('nn.SpatialBatchNormalization')) do
             v.running_mean:copy(bn_mean[k])
             v.running_var:copy(bn_std[k])
         end
@@ -81,9 +80,9 @@ local function load_model()
 end
      
 function evaluate()
+    model:evaluate()
     local left_rgb, left_lwir, right_lwir, right_rgb, target = dataset:get_test_cuda()
     local nb_points = (#left_rgb)[1]
-    model:evaluate()
 
     local remainder = math.fmod(n, opt.tb)
     if remainder ~= 0 then
@@ -91,7 +90,7 @@ function evaluate()
     end
 
     good_predictions = 0
-    for i = 1, n, opt.tb do
+    for i = 1, nb_points, opt.tb do
         output = model:forward({{left_rgb:narrow(1, i, opt.tb), left_lwir:narrow(1, i, opt.tb)}, {right_lwir:narrow(1, i, opt.tb), right_rgb:narrow(1, i, opt.tb)}})
         local _, y = output:max(2)
         y = y:long():cuda()
