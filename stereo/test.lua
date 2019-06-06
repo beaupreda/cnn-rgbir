@@ -31,7 +31,7 @@ model_bnmeanstd = opt.folder_name .. '/bn_meanvar_epoch_200.t7'
 
 print(c.blue '==>' ..' configuring model')
 
-torch.manualSeed(123)
+torch.manualSeed(42)
 gpu = opt.gpuid + 1
 cutorch.setDevice(gpu)
 torch.setdefaulttensortype('torch.FloatTensor')
@@ -55,7 +55,7 @@ local function load_model()
     parallel = nn.ParallelTable()
     left = create_model(opt.half_range * 2 + 1, 3):cuda()
     right = create_model(opt.half_range * 2 + 1, 3):cuda()
-    right = l_model:clone('weight','bias','gradWeight','gradBias')
+    right = left:clone('weight','bias','gradWeight','gradBias')
     parallel:add(left):add(right)
     model:add(parallel)
     model:add(nn.CAddTable():cuda())
@@ -80,31 +80,27 @@ local function load_model()
     end
 end
      
-acc_count = 0
 function evaluate()
-    -- compute 3-pixel error
-    local l, r, tar, ll, rr = dataset:get_test_cuda()
-    local n = (#l)[1]
-    left_model = model
-    left_model:evaluate()
+    local left_rgb, left_lwir, right_lwir, right_rgb, target = dataset:get_test_cuda()
+    local nb_points = (#left_rgb)[1]
+    model:evaluate()
 
     local remainder = math.fmod(n, opt.tb)
-    print(remainder)
     if remainder ~= 0 then
-        n = n - remainder
+        nb_points = nb_points - remainder
     end
-    print(n)
-    assert(math.fmod(n, opt.tb) == 0, "use opt.tb to be divided exactly by number of validate sample")
-    acc_count = 0
-    for i=1,n,opt.tb do
-        o = left_model:forward({{l:narrow(1,i,opt.tb), r:narrow(1,i,opt.tb)}, {ll:narrow(1,i,opt.tb), rr:narrow(1,i,opt.tb)}})
-        local _,y = o:max(2)
-        y = y:long():cuda()
-        acc_count = acc_count + (torch.abs(y-tar:narrow(1,i,opt.tb)):le(3):sum())
-    end
-    acc_count = acc_count / n * opt.tb
-    print('Test accuracy: ' .. c.cyan(acc_count) .. ' %')
 
+    good_predictions = 0
+    for i = 1, n, opt.tb do
+        output = model:forward({{left_rgb:narrow(1, i, opt.tb), left_lwir:narrow(1, i, opt.tb)}, {right_lwir:narrow(1, i, opt.tb), right_rgb:narrow(1, i, opt.tb)}})
+        local _, y = output:max(2)
+        y = y:long():cuda()
+        -- 3 pixel error
+        good_predictions = good_predictions + (torch.abs(y - target:narrow(1, i, opt.tb)):le(3):sum())
+    end
+
+    accuracy = good_predictions / n * opt.tb
+    print('Test accuracy: ' .. c.cyan(accuracy) .. ' %')
 end
 
 load_model()
