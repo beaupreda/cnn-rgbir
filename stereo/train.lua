@@ -14,7 +14,6 @@ require 'TrainDataHandler'
 local c = require 'trepl.colorize'
 lapp = require 'pl.lapp'
 opt = lapp[[
-    --data_version             (default '')
     -s,--save                  (default 'logs/debug')       directory to save logs
     -b,--batchSize             (default 128)                batch size
     -g, --gpuid                (default 0)                  gpu id
@@ -186,29 +185,26 @@ end
 
 function save_arguments()
     argsFile:write(string.format('Parameter                    Definition                                        Value\n'))
-    argsFile:write(string.format('--data_version               dataset_version                                   %s\n', opt.data_version))
     argsFile:write(string.format('--data_root                  images location                                   %s\n', opt.data_root))
     argsFile:write(string.format('--util_root                  binary files location                             %s\n', opt.util_root))
     argsFile:write(string.format('--batchSize                  batch size                                        %d\n', opt.batchSize))
-    argsFile:write(string.format('--tr_num                     number of training images                         %d\n', opt.tr_num))
-    argsFile:write(string.format('--val_num                    number of validation images                       %d\n', opt.val_num))
+    argsFile:write(string.format('--train_nb                   number of training images                         %d\n', opt.train_nb))
+    argsFile:write(string.format('--validation_nb              number of validation images                       %d\n', opt.validation_nb))
     argsFile:write(string.format('--learningRate               learning rate                                     %f\n', opt.learningRate))
     argsFile:write(string.format('--learningRateDecay          decay of learning rate                            %f\n', opt.learningRateDecay))
     argsFile:write(string.format('--weightDecay                weight decay                                      %f\n', opt.weightDecay))
     argsFile:write(string.format('--momentum                   momentum                                          %f\n', opt.momentum))
-    argsFile:write(string.format('--model                      which model is used                               %s\n', opt.model))
     argsFile:write(string.format('--epoch_step                 half learning rate at every epoch step            %d\n', opt.epoch_step))
     argsFile:write(string.format('--weight_epoch               save weight at every weight epoch                 %d\n', opt.weight_epoch))
     argsFile:write(string.format('--max_epoch                  maximum number of iterations                      %d\n', opt.max_epoch))
     argsFile:write(string.format('--iter_per_epoch             evaluate every # of iterations                    %d\n', opt.iter_per_epoch))
-    argsFile:write(string.format('--tb                         test batch size                                   %d\n', opt.tb))
-    argsFile:write(string.format('--validation_points                number of test patch pair                   %d\n', opt.validation_points))
+    argsFile:write(string.format('--tb                         validation batch size                             %d\n', opt.tb))
+    argsFile:write(string.format('--validation_points          number of validation patch pair                   %d\n', opt.validation_points))
     argsFile:write(string.format('--opt_method                 optimization method (sgd, adam, adagrad)          %s\n', opt.opt_method))
     argsFile:write(string.format('--showCurve                  show or not accuracy curves                       %d\n', opt.showCurve))
     argsFile:write(string.format('--psz                        half width                                        %d\n', opt.psz))
     argsFile:write(string.format('--half_range                 half range                                        %d\n', opt.half_range))
-    argsFile:write(string.format('--model_param                loaded model parameters for finetuning            %s\n', opt.model_param))
-    argsFile:write(string.format('--bn_meanstd                 loaded batch norm mean and standard dev           %s\n', opt.bn_meanstd))
+    argsFile:write(string.format('--fold                       fold number (1, 2 or 3)                           %d\n', opt.fold))
 end
 
 while epoch < opt.max_epoch do
