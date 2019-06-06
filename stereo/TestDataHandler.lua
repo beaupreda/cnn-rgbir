@@ -20,7 +20,7 @@ function TestDataHandler:__init(data_root, util_root, img_nb, psz, half_range, f
     self.half_range = half_range
     self.cuda = gpu or 1
 
-    local name = string.format('%s/%s_%d.bin', util_root, 'test', self.fold)
+    local name = string.format('%s/test_%d.bin', util_root, self.fold)
     local file = io.open(full_test_name, 'r')
     local size = file:seek('end')
     -- every entry in binary file is 4 bytes
@@ -69,7 +69,7 @@ function TestDataHandler:__init(data_root, util_root, img_nb, psz, half_range, f
         -- swap x coordinates rgb-lwir for right network
         local tmp = x
         x = right_x
-        right_x = x
+        right_x = tmp
 
         -- small patch lwir
         self.right_lwir[i] = self.lwir[id - offset][{{}, {y - self.psz, y + self.psz}, {x - self.psz, x + self.psz}}]
@@ -79,7 +79,7 @@ function TestDataHandler:__init(data_root, util_root, img_nb, psz, half_range, f
     collectgarbage()
 end
 
-function TestDataHandler:get_test_cuda()
+function TestDataHandler:get_test()
     return self.left_rgb:cuda(), self.left_lwir:cuda(), self.right_lwir:cuda(), self.right_rgb:cuda(), self.test_labels:cuda()
 end
 

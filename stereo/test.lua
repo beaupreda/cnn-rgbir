@@ -81,7 +81,7 @@ end
      
 function evaluate()
     model:evaluate()
-    local left_rgb, left_lwir, right_lwir, right_rgb, target = dataset:get_test_cuda()
+    local left_rgb, left_lwir, right_lwir, right_rgb, target = dataset:get_test()
     local nb_points = (#left_rgb)[1]
 
     local remainder = math.fmod(n, opt.tb)

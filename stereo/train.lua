@@ -24,7 +24,6 @@ opt = lapp[[
     --learningRateDecay        (default 1e-7)               learning rate decay
     --weightDecay              (default 0.0005)             weightDecay
     -m,--momentum              (default 0.9)                momentum
-    --model                    (default dot_win37_dep9)     model name
     --epoch_step               (default 40)                 half learning rate at every 'epoch_step'
     --weight_epoch             (default 5)                  save weight at every 'weight_epoch'
     --max_epoch                (default 10)                 maximum number of iterations
@@ -37,6 +36,7 @@ opt = lapp[[
     --showCurve                (default 0)                  use 1 to show training / validation curve
     --psz                      (default 9)                  half width
     --half_range               (default 100)                half range
+    --fold                     (default 1)                  fold number (1, 2 or 3)
 ]]
 
 print(c.blue '==>' ..' configuring model')
@@ -122,7 +122,7 @@ end
 acc_count = 0
 function evaluate()
     model:evaluate()
-    local left_rgb, left_lwir, right_lwir, right_rgb, target = dataset:get_eval_cuda()
+    local left_rgb, left_lwir, right_lwir, right_rgb, target = dataset:get_eval()
     local nb_points = (#left_rgb)[1]
     loss = -1
 
