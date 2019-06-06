@@ -22,7 +22,6 @@
 #define HALF_RANGE 2
 #define OFFSET 0
 #define PNG_EXTENSION ".png"
-#define JPEG_EXTENSION ".jpg"
 #define BIN_EXTENSION ".bin"
 #define VERIFICATION false
 #define BIN_LOC_TRAIN "../train"
@@ -46,245 +45,178 @@ int main(int argc, char* argv[]) {
 
     //////////// training ////////////
     std::cout << "Starting patch generation for training data..." << std::endl;
-    MapReader mrAll;
-    mrAll.read(ALL_TRAIN_MAP);
+    MapReader mr;
+    mr.read(TRAIN_MAP);
 
     MixReader mixReader;
-    for (auto itAll : mrAll.getMapping())
-        mixReader.readFile(itAll.second);
+    for (auto it : mr.getMapping())
+        mixReader.readFile(it.second);
     mixReader.mergeMaps();
 
-    std::cout << "Generating patches location for mix dataset..." << std::endl;
-    unsigned int totalPointsAll = 0;
-    std::vector<std::vector<float>> validPointsAll;
-    for (auto itMix : mixReader.getImagePoints()) {
-        imgReader.readImagesFromPath(ALL_RECTIFIED_TRAIN_LOCATION, itMix.first, PNG_EXTENSION);
-        totalPointsAll += 3 * itMix.second.first.size();
-        for (int i = 0; i < itMix.second.first.size(); ++i) {
-            PatchCreator centerPatch(itMix.second.first[i], itMix.second.second[i], std::stoi(itMix.first));
-#if NEW_ARCH
-            if (centerPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, VERTICAL))
-                centerPatch.savePoints(validPointsAll, VERTICAL);
-#else
-            if (centerPatch.checkRgbPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, INVERT_RGB_LWIR) &&
-                centerPatch.checkLwirPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getLwirImg().cols, imgReader.getLwirImg().rows, INVERT_RGB_LWIR)) {
-                centerPatch.savePoints(validPointsAll);
-            }
-#endif
-            cv::Point2i upperPointRGB(itMix.second.first[i].x, itMix.second.first[i].y + 1);
-            cv::Point2i upperPointLWIR(itMix.second.second[i].x, itMix.second.second[i].y + 1);
-            PatchCreator upperPatch(upperPointRGB, upperPointLWIR, std::stoi(itMix.first));
-#if NEW_ARCH
-            if (upperPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, VERTICAL))
-                upperPatch.savePoints(validPointsAll, VERTICAL);
-#else
-            if (upperPatch.checkRgbPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, INVERT_RGB_LWIR) &&
-                upperPatch.checkLwirPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getLwirImg().cols, imgReader.getLwirImg().rows, INVERT_RGB_LWIR)) {
-                upperPatch.savePoints(validPointsAll);
-            }
-#endif
-            cv::Point2i lowerPointRGB(itMix.second.first[i].x, itMix.second.first[i].y - 1);
-            cv::Point2i lowerPointLWIR(itMix.second.second[i].x, itMix.second.second[i].y - 1);
-            PatchCreator lowerPatch(lowerPointRGB, lowerPointLWIR, std::stoi(itMix.first));
-#if NEW_ARCH
-            if (lowerPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, VERTICAL))
-                lowerPatch.savePoints(validPointsAll, VERTICAL);
-#else
-            if (lowerPatch.checkRgbPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, INVERT_RGB_LWIR) &&
-                lowerPatch.checkLwirPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getLwirImg().cols, imgReader.getLwirImg().rows, INVERT_RGB_LWIR)) {
-                lowerPatch.savePoints(validPointsAll);
-            }
-#endif
+    std::cout << "Generating patches location for dataset..." << std::endl;
+    unsigned int totalPoints = 0;
+    std::vector<std::vector<float>> validPoints;
+    for (auto it : mixReader.getImagePoints()) {
+        imgReader.readImagesFromPath(RECTIFIED_TRAIN_LOCATION, it.first, PNG_EXTENSION);
+        totalPoints += 3 * it.second.first.size();
+        for (int i = 0; i < it.second.first.size(); ++i) {
+            PatchCreator centerPatch(it.second.first[i], it.second.second[i], std::stoi(it.first));
+            if (centerPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows))
+                centerPatch.savePoints(validPoints);
+
+            cv::Point2i upperPointRGB(it.second.first[i].x, it.second.first[i].y + 1);
+            cv::Point2i upperPointLWIR(it.second.second[i].x, it.second.second[i].y + 1);
+            PatchCreator upperPatch(upperPointRGB, upperPointLWIR, std::stoi(it.first));
+            if (upperPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows))
+                upperPatch.savePoints(validPoints);
+
+            cv::Point2i lowerPointRGB(it.second.first[i].x, it.second.first[i].y - 1);
+            cv::Point2i lowerPointLWIR(it.second.second[i].x, it.second.second[i].y - 1);
+            PatchCreator lowerPatch(lowerPointRGB, lowerPointLWIR, std::stoi(it.first));
+            if (lowerPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows))
+                lowerPatch.savePoints(validPoints);
         }
     }
     std::cout << std::endl;
     std::cout << "---------- Summary of generated points ----------" << std::endl;
-    std::cout << "Number of valid points (ALL-train): " << validPointsAll.size() << std::endl;
-    std::cout << "Total number of points (ALL-train): " << totalPointsAll << std::endl;
+    std::cout << "Number of valid points (train): " << validPoints.size() << std::endl;
+    std::cout << "Total number of points (train): " << totalPoints << std::endl;
     std::cout << std::endl;
 
     //////////// verification ////////////
 #if VERIFICATION
-    std::cout << "Starting visual verification of the points..." << std::endl;
+    std::cout << "Starting visual verification..." << std::endl;
     VisualVerificator vs;
-    //vs.showAllPoints(validPointsAll, ALL_RECTIFIED_TRAIN_LOCATION, PNG_EXTENSION, INVERT_RGB_LWIR);
-    //vs.showAllPoints(validPointsPlsc, plscTrainRectifiedDataset, PNG_EXTENSION);
-    //vs.showAllPoints(validPointsGab, gabTrainRectifiedDataset, JPEG_EXTENSION);
-    //for (auto point : validPointsPlsc)
-        //vs.showPatches(halfWidth, halfRange, point, plscTrainRectifiedDataset, PNG_EXTENSION);
-    //for (auto point : validPointsGab)
-        //vs.showPatches(halfWidth, halfRange, point, gabTrainRectifiedDataset, JPEG_EXTENSION);
-    for (auto point : validPointsAll)
-        vs.showPatches(halfWidth, halfRange, point, ALL_RECTIFIED_TRAIN_LOCATION, PNG_EXTENSION, INVERT_RGB_LWIR, VERTICAL);
+    vs.showAllPoints(validPoints, RECTIFIED_TRAIN_LOCATION, PNG_EXTENSION);
+    for (auto point : validPoints)
+        vs.showPatches(halfWidth, halfRange, point, RECTIFIED_TRAIN_LOCATION, PNG_EXTENSION);
 #endif
 
     //////////// save to binary file ////////////
-    std::cout << "Saving patches location to binary files..." << std::endl;
+    std::cout << "Saving patches location to binary file..." << std::endl;
     std::cout << std::endl << std::endl;
-    BinaryWriter bwAll(ALL_BIN_LOC_TRAIN, "_" + invert + hw + "_" + hr + filetype + "_" + id + BIN_EXTENSION);
-    bwAll.writePointsToFile(validPointsAll);
-    auto trainAll = validPointsAll;
+    BinaryWriter bw(BIN_LOC_TRAIN, BIN_EXTENSION);
+    bw.writePointsToFile(validPoints);
+    auto train = validPoints;
 
     //////////// clear variables used for training ////////////
-    mrAll.clearMapping();
+    mr.clearMapping();
     mixReader.clearImagePoints();
-    validPointsAll.clear();
+    validPoints.clear();
 
     //////////// validation ////////////
     std::cout << "Starting patch generation for validation data..." << std::endl;
-    mrAll.read(ALL_VAL_MAP);
+    mr.read(VAL_MAP);
 
-    for (auto itAll : mrAll.getMapping())
+    for (auto itAll : mr.getMapping())
         mixReader.readFile(itAll.second);
     mixReader.mergeMaps();
 
-    std::cout << "Generating patches location for mix dataset..." << std::endl;
-    totalPointsAll = 0;
-    for (auto itMix : mixReader.getImagePoints()) {
-        imgReader.readImagesFromPath(ALL_RECTIFIED_VAL_LOCATION, itMix.first, PNG_EXTENSION);
-        totalPointsAll += 3 * itMix.second.first.size();
-        for (int i = 0; i < itMix.second.first.size(); ++i) {
-            PatchCreator centerPatch(itMix.second.first[i], itMix.second.second[i], std::stoi(itMix.first));
-#if NEW_ARCH
-            if (centerPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, VERTICAL))
-                centerPatch.savePoints(validPointsAll, VERTICAL);
-#else
-            if (centerPatch.checkRgbPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, INVERT_RGB_LWIR) &&
-                centerPatch.checkLwirPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getLwirImg().cols, imgReader.getLwirImg().rows, INVERT_RGB_LWIR)) {
-                centerPatch.savePoints(validPointsAll);
-            }
-#endif
-            cv::Point2i upperPointRGB(itMix.second.first[i].x, itMix.second.first[i].y + 1);
-            cv::Point2i upperPointLWIR(itMix.second.second[i].x, itMix.second.second[i].y + 1);
-            PatchCreator upperPatch(upperPointRGB, upperPointLWIR, std::stoi(itMix.first));
-#if NEW_ARCH
-            if (upperPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, VERTICAL))
-                upperPatch.savePoints(validPointsAll, VERTICAL);
-#else
-            if (upperPatch.checkRgbPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, INVERT_RGB_LWIR) &&
-                upperPatch.checkLwirPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getLwirImg().cols, imgReader.getLwirImg().rows, INVERT_RGB_LWIR)) {
-                upperPatch.savePoints(validPointsAll);
-            }
-#endif
-            cv::Point2i lowerPointRGB(itMix.second.first[i].x, itMix.second.first[i].y - 1);
-            cv::Point2i lowerPointLWIR(itMix.second.second[i].x, itMix.second.second[i].y - 1);
-            PatchCreator lowerPatch(lowerPointRGB, lowerPointLWIR, std::stoi(itMix.first));
-#if NEW_ARCH
-            if (lowerPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, VERTICAL))
-                lowerPatch.savePoints(validPointsAll, VERTICAL);
-#else
-            if (lowerPatch.checkRgbPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, INVERT_RGB_LWIR) &&
-                lowerPatch.checkLwirPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getLwirImg().cols, imgReader.getLwirImg().rows, INVERT_RGB_LWIR)) {
-                lowerPatch.savePoints(validPointsAll);
-            }
-#endif
+    std::cout << "Generating patches location for dataset..." << std::endl;
+    totalPoints = 0;
+    for (auto it : mixReader.getImagePoints()) {
+        imgReader.readImagesFromPath(ALL_RECTIFIED_VAL_LOCATION, it.first, PNG_EXTENSION);
+        totalPoints += 3 * it.second.first.size();
+        for (int i = 0; i < it.second.first.size(); ++i) {
+            PatchCreator centerPatch(it.second.first[i], it.second.second[i], std::stoi(it.first));
+
+            if (centerPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows))
+                centerPatch.savePoints(validPoints);
+
+            cv::Point2i upperPointRGB(it.second.first[i].x, it.second.first[i].y + 1);
+            cv::Point2i upperPointLWIR(it.second.second[i].x, it.second.second[i].y + 1);
+            PatchCreator upperPatch(upperPointRGB, upperPointLWIR, std::stoi(it.first));
+            if (upperPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows))
+                upperPatch.savePoints(validPoints);
+
+            cv::Point2i lowerPointRGB(it.second.first[i].x, it.second.first[i].y - 1);
+            cv::Point2i lowerPointLWIR(it.second.second[i].x, it.second.second[i].y - 1);
+            PatchCreator lowerPatch(lowerPointRGB, lowerPointLWIR, std::stoi(it.first));
+            if (lowerPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows))
+                lowerPatch.savePoints(validPoints);
         }
     }
     std::cout << std::endl;
     std::cout << "---------- Summary of generated points ----------" << std::endl;
-    std::cout << "Number of valid points (ALL-validation): " << validPointsAll.size() << std::endl;
-    std::cout << "Total number of points (ALL-validation): " << totalPointsAll << std::endl;
+    std::cout << "Number of valid points (validation): " << validPoints.size() << std::endl;
+    std::cout << "Total number of points (validation): " << totalPoints << std::endl;
     std::cout << std::endl;
 
     //////////// verification ////////////
 #if VERIFICATION
-    std::cout << "Starting visual verification of the points..." << std::endl;
-    //vs.showAllPoints(validPointsAll, ALL_RECTIFIED_VAL_LOCATION, PNG_EXTENSION);
-    //vs.showAllPoints(validPointsPlsc, plscValRectifiedDataset, PNG_EXTENSION);
-    //vs.showAllPoints(validPointsGab, gabValRectifiedDataset, JPEG_EXTENSION);
-    //for (auto point : validPointsPlsc)
-        //vs.showPatches(halfWidth, halfRange, point, plscValRectifiedDataset, PNG_EXTENSION);
-    //for (auto point : validPointsGab)
-        //vs.showPatches(halfWidth, halfRange, point, gabValRectifiedDataset, JPEG_EXTENSION);
+    std::cout << "Starting visual verification..." << std::endl;
+    vs.showAllPoints(validPointsGab, RECTIFIED_VALIDATION_LOCATION, PNG_EXTENSION);
+    for (auto point : validPoints)
+        vs.showPatches(halfWidth, halfRange, point, RECTIFIED_VALIDATION_LOCATION, PNG_EXTENSION);
 #endif
 
     //////////// save to binary file ////////////
-    std::cout << "Saving patches location to binary files..." << std::endl;
+    std::cout << "Saving patches location to binary file..." << std::endl;
     std::cout << std::endl << std::endl;
-    bwAll.setFilename(ALL_BIN_LOC_VAL, "_" + invert + hw + "_" + hr + filetype + "_" + id  + BIN_EXTENSION);
-    bwAll.writePointsToFile(validPointsAll);
-    auto valAll = validPointsAll;
+    bw.setFilename(ALL_BIN_LOC_VAL, BIN_EXTENSION);
+    bw.writePointsToFile(validPoints);
+    auto val = validPoints;
 
     //////////// clear variables used for validation ////////////
-    mrAll.clearMapping();
+    mr.clearMapping();
     mixReader.clearImagePoints();
-    validPointsAll.clear();
+    validPoints.clear();
 
     //////////// testing ////////////
     std::cout << "Starting patch generation for testing data..." << std::endl;
-    mrAll.read(ALL_TEST_MAP);
+    mr.read(ALL_TEST_MAP);
 
-    for (auto itAll : mrAll.getMapping())
+    for (auto itAll : mr.getMapping())
         mixReader.readFile(itAll.second);
     mixReader.mergeMaps();
 
-    std::cout << "Generating patches location for mix dataset..." << std::endl;
-    totalPointsAll = 0;
-    for (auto itMix : mixReader.getImagePoints()) {
-        imgReader.readImagesFromPath(ALL_RECTIFIED_TEST_LOCATION, itMix.first, PNG_EXTENSION);
-        totalPointsAll += 3 * itMix.second.first.size();
-        for (int i = 0; i < itMix.second.first.size(); ++i) {
-            PatchCreator centerPatch(itMix.second.first[i], itMix.second.second[i], std::stoi(itMix.first));
-#if NEW_ARCH
-            if (centerPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, VERTICAL))
-                centerPatch.savePoints(validPointsAll, VERTICAL);
-#else
-            if (centerPatch.checkRgbPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, INVERT_RGB_LWIR) &&
-                centerPatch.checkLwirPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getLwirImg().cols, imgReader.getLwirImg().rows, INVERT_RGB_LWIR)) {
-                centerPatch.savePoints(validPointsAll);
-            }
-#endif
-            cv::Point2i upperPointRGB(itMix.second.first[i].x, itMix.second.first[i].y + 1);
-            cv::Point2i upperPointLWIR(itMix.second.second[i].x, itMix.second.second[i].y + 1);
-            PatchCreator upperPatch(upperPointRGB, upperPointLWIR, std::stoi(itMix.first));
-#if NEW_ARCH
-            if (centerPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, VERTICAL))
-                centerPatch.savePoints(validPointsAll, VERTICAL);
-#else
-            if (upperPatch.checkRgbPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, INVERT_RGB_LWIR) &&
-                upperPatch.checkLwirPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getLwirImg().cols, imgReader.getLwirImg().rows, INVERT_RGB_LWIR)) {
-                upperPatch.savePoints(validPointsAll);
-            }
-#endif
-            cv::Point2i lowerPointRGB(itMix.second.first[i].x, itMix.second.first[i].y - 1);
-            cv::Point2i lowerPointLWIR(itMix.second.second[i].x, itMix.second.second[i].y - 1);
-            PatchCreator lowerPatch(lowerPointRGB, lowerPointLWIR, std::stoi(itMix.first));
-#if NEW_ARCH
-            if (centerPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, VERTICAL))
-                centerPatch.savePoints(validPointsAll, VERTICAL);
-#else
-            if (lowerPatch.checkRgbPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows, INVERT_RGB_LWIR) &&
-                lowerPatch.checkLwirPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getLwirImg().cols, imgReader.getLwirImg().rows, INVERT_RGB_LWIR)) {
-                lowerPatch.savePoints(validPointsAll);
-            }
-#endif
+    std::cout << "Generating patches location for dataset..." << std::endl;
+    totalPoints = 0;
+    for (auto it : mixReader.getImagePoints()) {
+        imgReader.readImagesFromPath(ALL_RECTIFIED_TEST_LOCATION, it.first, PNG_EXTENSION);
+        totalPoints += 3 * it.second.first.size();
+        for (int i = 0; i < it.second.first.size(); ++i) {
+            PatchCreator centerPatch(it.second.first[i], it.second.second[i], std::stoi(it.first));
+
+            if (centerPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows))
+                centerPatch.savePoints(validPoints);
+
+            cv::Point2i upperPointRGB(it.second.first[i].x, it.second.first[i].y + 1);
+            cv::Point2i upperPointLWIR(it.second.second[i].x, it.second.second[i].y + 1);
+            PatchCreator upperPatch(upperPointRGB, upperPointLWIR, std::stoi(it.first));
+            if (centerPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows))
+                centerPatch.savePoints(validPoints);
+
+            cv::Point2i lowerPointRGB(it.second.first[i].x, it.second.first[i].y - 1);
+            cv::Point2i lowerPointLWIR(it.second.second[i].x, it.second.second[i].y - 1);
+            PatchCreator lowerPatch(lowerPointRGB, lowerPointLWIR, std::stoi(it.first));
+            if (centerPatch.checkPatchValidity(halfWidth, halfRange, OFFSET, imgReader.getRgbImg().cols, imgReader.getRgbImg().rows))
+                centerPatch.savePoints(validPoints);
         }
     }
     std::cout << std::endl;
     std::cout << "---------- Summary of generated points ----------" << std::endl;
-    std::cout << "Number of valid points (ALL-test): " << validPointsAll.size() << std::endl;
-    std::cout << "Total number of points (ALL-test): " << totalPointsAll << std::endl;
+    std::cout << "Number of valid points (test): " << validPoints.size() << std::endl;
+    std::cout << "Total number of points (test): " << totalPoints << std::endl;
     std::cout << std::endl;
 
     //////////// verification ////////////
 #if VERIFICATION
-    std::cout << "Starting visual verification of the points..." << std::endl;
-    vs.showAllPoints(validPointsGab, gabTestRectifiedDataset, JPEG_EXTENSION, INVERT_RGB_LWIR);
-    //for (auto point : validPointsPlsc)
-        //vs.showPatches(halfWidth, halfRange, point, plscTestRectifiedDataset, PNG_EXTENSION);
-    //for (auto point : validPointsGab)
-        //vs.showPatches(halfWidth, halfRange, point, gabTestRectifiedDataset, JPEG_EXTENSION);
+    std::cout << "Starting visual verification..." << std::endl;
+    vs.showAllPoints(validPointsGab, RECTIFIED_TEST_LOCATION, PNG_EXTENSION);
+    for (auto point : validPoints)
+        vs.showPatches(halfWidth, halfRange, point, RECTIFIED_TEST_LOCATION, PNG_EXTENSION);
 #endif
 
     //////////// save to binary file ////////////
-    std::cout << "Saving patches location to binary files..." << std::endl;
+    std::cout << "Saving patches location to binary file..." << std::endl;
     std::cout << std::endl << std::endl;
-    bwAll.setFilename(ALL_BIN_LOC_TEST, "_" + invert + hw + "_" + hr + filetype + "_" + id  + BIN_EXTENSION);
-    bwAll.writePointsToFile(validPointsAll);
-    auto testAll = validPointsAll;
+    bw.setFilename(BIN_LOC_TEST, BIN_EXTENSION);
+    bw.writePointsToFile(validPoints);
+    auto testAll = validPoints;
 
     //////////// clear variables used for validation ////////////
-    mrAll.clearMapping();
+    mr.clearMapping();
     mixReader.clearImagePoints();
-    validPointsAll.clear();
+    validPoints.clear();
 }

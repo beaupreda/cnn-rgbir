@@ -6,12 +6,10 @@
 class PatchCreator {
 public:
     PatchCreator(const cv::Point2i& rgbPoint, const cv::Point2i& lwirPoint, int frameNumber);
-    bool checkPatchValidity(int halfWidth, int halfRange, int offset, int width, int height, bool isVertical);
-    bool checkRgbPatchValidity(int halfWidth, int halfRange, int offset, int width, int height, bool inverted);
-    bool checkLwirPatchValidity(int halfWidth, int halfRange, int offset, int width, int height, bool inverted);
+    bool checkPatchValidity(int halfWidth, int halfRange, int offset, int width, int height);
     cv::Point2i getRgbCenter() const;
     cv::Point2i getLwirCenter() const;
-    void savePoints(std::vector<std::vector<float>>& validPoints, bool isVertical);
+    void savePoints(std::vector<std::vector<float>>& validPoints);
     static void transposeValidPoints(const std::vector<std::vector<float>>& validPoints, std::vector<std::vector<float>>& tValidPoints);
 private:
     cv::Point2i rgbCenter;
