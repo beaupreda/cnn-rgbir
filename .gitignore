@@ -73,8 +73,8 @@ luac.out
 *.app
 
 # Build folder
-build/
-cmake-build-debug/
+*/build/*
+*/cmake-build-debug/*
 
 # Other folders
-.idea/
+*.idea/*
