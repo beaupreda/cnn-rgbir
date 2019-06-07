@@ -79,6 +79,7 @@ luac.out
 
 # Other folders
 *.idea/*
+*dataset/*
 
 # VCS folders #
 ###############
