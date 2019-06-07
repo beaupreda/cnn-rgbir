@@ -20,8 +20,8 @@ function TestDataHandler:__init(data_root, util_root, img_nb, psz, half_range, f
     self.half_range = half_range
     self.cuda = gpu or 1
 
-    local name = string.format('%s/test_%d.bin', util_root, self.fold)
-    local file = io.open(full_test_name, 'r')
+    local name = string.format('%s/testing%d.bin', util_root, self.fold)
+    local file = io.open(name, 'r')
     local size = file:seek('end')
     -- every entry in binary file is 4 bytes
     size = size / 4
@@ -38,7 +38,7 @@ function TestDataHandler:__init(data_root, util_root, img_nb, psz, half_range, f
     -- load and normalize test images
     for i = offset, img_nb + offset - 1 do
         j = i - offset
-        xlua.progress(j, img_nb)
+        xlua.progress(j + 1, img_nb)
         local rgb = image.load(string.format('%s/test/rgb/%d.png', data_root, i), self.channels, 'byte'):float()
         local lwir = image.load(string.format('%s/test/lwir/%d.png', data_root, i), self.channels, 'byte'):float()
         rgb:add(-rgb:mean()):div(rgb:std())
@@ -80,6 +80,6 @@ function TestDataHandler:__init(data_root, util_root, img_nb, psz, half_range, f
 end
 
 function TestDataHandler:get_test()
-    return self.left_rgb:cuda(), self.left_lwir:cuda(), self.right_lwir:cuda(), self.right_rgb:cuda(), self.test_labels:cuda()
+    return self.left_rgb:cuda(), self.left_lwir:cuda(), self.right_lwir:cuda(), self.right_rgb:cuda(), self.labels:cuda()
 end
 

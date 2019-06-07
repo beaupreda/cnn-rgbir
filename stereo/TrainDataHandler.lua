@@ -23,14 +23,14 @@ function TrainDataHandler:__init(data_root, util_root, train_nb, validation_nb, 
     self.training_ptr = 0
     self.curr_epoch = 0
 
-    local name = string.format('%s/train_%d.bin', util_root, self.fold)
+    local name = string.format('%s/train%d.bin', util_root, self.fold)
     local file = io.open(name, 'r')
     local size = file:seek('end')
     size = size / 4
     self.train_locations = torch.FloatTensor(torch.FloatStorage(name, false, size)):view(-1,5)
     self.train_permutations = torch.randperm((#self.train_locations)[1])
 
-    name = string.format('%s/validation_%d.bin', util_root, self.fold)
+    name = string.format('%s/validation%d.bin', util_root, self.fold)
     file = io.open(name, 'r')
     size = file:seek('end')
     size = size / 4

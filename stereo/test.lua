@@ -15,7 +15,6 @@ require 'TestDataHandler'
 local c = require 'trepl.colorize'
 lapp = require 'pl.lapp'
 opt = lapp[[
-    --folder_name              (default '')                    folder of .t7 files
     -g, --gpuid                (default 0)                     gpu id
     --test_nb                  (default 10)                    number of test images
     --data_root                (default '')                    dataset root folder (images)
@@ -24,10 +23,12 @@ opt = lapp[[
     --psz                      (default 18)                    half width
     --half_range               (default 60)                    half range
     --fold                     (default 1)                     fold number (1, 2 or 3)
+    --weights                  (default '')                    path to .t7 file containing weights after training
+    --bn                       (default '')                    path to .t7 file containing bn statistics after training
 ]]
 
-model_params = opt.folder_name .. '/param_epoch_200.t7'
-model_bnmeanstd = opt.folder_name .. '/bn_meanvar_epoch_200.t7'
+weights = opt.weights
+bnmeanstd = opt.bn
 
 print(c.blue '==>' ..' configuring model')
 
@@ -44,10 +45,11 @@ elseif opt.fold == 2 then
     offset = 940
 elseif opt.fold == 3 then
     offset = 984
+end
 
 print(c.blue '==>' ..' loading test data')
 
-dataset = TestDataHandler(opt.data_root, opt.util_root, opt.test_num, opt.psz, opt.half_range, opt.fold, gpu, offset)
+dataset = TestDataHandler(opt.data_root, opt.util_root, opt.test_nb, opt.psz, opt.half_range, opt.fold, gpu, offset)
 
 local function load_model()
     require('model.lua')
@@ -64,13 +66,12 @@ local function load_model()
     
     print(c.blue '==>' ..' loading parameters')
     -- load parameters
-    local params = torch.load(model_params)
+    local params = torch.load(weights)
     assert(params:nElement() == model_param:nElement(), string.format('%s: %d vs %d', 'loading parameters: dimension mismatch.', params:nElement(), model_param:nElement()))
     model_param:copy(params)
 
-    if(string.len(model_bnmeanstd) > 0) then 
-        local bn_mean, bn_std = table.unpack(torch.load(model_bnmeanstd))
-        print(bn_mean[k])
+    if(string.len(bnmeanstd) > 0) then 
+        local bn_mean, bn_std = table.unpack(torch.load(bnmeanstd))
 
         for k, v in pairs(model:findModules('nn.SpatialBatchNormalization')) do
             v.running_mean:copy(bn_mean[k])
@@ -84,7 +85,7 @@ function evaluate()
     local left_rgb, left_lwir, right_lwir, right_rgb, target = dataset:get_test()
     local nb_points = (#left_rgb)[1]
 
-    local remainder = math.fmod(n, opt.tb)
+    local remainder = math.fmod(nb_points, opt.tb)
     if remainder ~= 0 then
         nb_points = nb_points - remainder
     end
@@ -98,7 +99,7 @@ function evaluate()
         good_predictions = good_predictions + (torch.abs(y - target:narrow(1, i, opt.tb)):le(3):sum())
     end
 
-    accuracy = good_predictions / n * opt.tb
+    accuracy = good_predictions / nb_points * opt.tb
     print('Test accuracy: ' .. c.cyan(accuracy) .. ' %')
 end
 

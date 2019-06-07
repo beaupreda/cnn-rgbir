@@ -6,6 +6,7 @@ David-Alexandre Beaupre
 '''
 
 
+import os
 import subprocess
 
 
@@ -16,8 +17,9 @@ def prepare_test(gpuid=None,
                  tb=None,
                  psz=None,
                  half_range=None,
-                 folder_name=None,
-                 fold=None):
+                 fold=None,
+                 weights=None,
+                 bn=None):
     params = locals()
     call = []
     call.append('th')
@@ -29,35 +31,51 @@ def prepare_test(gpuid=None,
     return call
 
 
-test_fold1 = prepare_test(gpuid='0',
+# path to dataset
+data_root = '/home/travail/dabeaq/litiv/masters/pbvs2019/cnn-rgbir/'
+fold1 = os.path.join(data_root, 'dataset1')
+fold2 = os.path.join(data_root, 'dataset2')
+fold3 = os.path.join(data_root, 'dataset3')
+# path to folder containing .bin files (either disparity_locations in pretrain of patch_generator in stereo)
+util_root = '/home/travail/dabeaq/litiv/masters/pbvs2019/cnn-rgbir/stereo/pretrain/disparity_locations'
+gpuid = '0'
+tb = '100'
+patch_size = '18'
+half_range = '60'
+
+
+test_fold1 = prepare_test(gpuid=gpuid,
                           test_nb='106',
-                          data_root='/home/travail/dabeaq/litiv/stereo/test_dataset_1_mix_art',
-                          util_root='/home/travail/dabeaq/litiv/stereo/patch_generator',
-                          tb='100',
-                          psz='18',
-                          half_range='60',
-                          folder_name='/home/travail/dabeaq/litiv/stereo/eff_dl_stereo_match/logs/run_2018y_9m_4d_16h_52min_53sec'
-                          fold='1')
+                          data_root=fold1,
+                          util_root=util_root,
+                          tb=tb,
+                          psz=patch_size,
+                          half_range=half_range,
+                          fold='1',
+                          weights='/home/travail/dabeaq/litiv/masters/pbvs2019/cnn-rgbir/stereo/pretrain/parameters/weights1.t7',
+                          bn='/home/travail/dabeaq/litiv/masters/pbvs2019/cnn-rgbir/stereo/pretrain/parameters/bn1.t7')
 
-test_fold2 = prepare_test(gpuid='0',
-                          test_num='178',
-                          data_root='/home/travail/dabeaq/litiv/stereo/test_dataset_2_mix',
-                          util_root='/home/travail/dabeaq/litiv/stereo/patch_generator',
-                          tb='100',
-                          psz='18',
-                          half_range='60',
-                          folder_name='/home/travail/dabeaq/litiv/stereo/eff_dl_stereo_match/logs/run_2018y_9m_10d_15h_27min_52sec',
-                          fold='2')
+test_fold2 = prepare_test(gpuid=gpuid,
+                          test_nb='178',
+                          data_root=fold2,
+                          util_root=util_root,
+                          tb=tb,
+                          psz=patch_size,
+                          half_range=half_range,
+                          fold='2',
+                          weights='/home/travail/dabeaq/litiv/masters/pbvs2019/cnn-rgbir/stereo/pretrain/parameters/weights2.t7',
+                          bn='/home/travail/dabeaq/litiv/masters/pbvs2019/cnn-rgbir/stereo/pretrain/parameters/bn2.t7')
 
-test_fold3 = prepare_test(gpuid='0',
-                          test_num='134',
-                          data_root='/home/travail/dabeaq/litiv/stereo/test_dataset_3_mix',
-                          util_root='/home/travail/dabeaq/litiv/stereo/patch_generator',
-                          tb='100',
-                          psz='18',
-                          half_range='60',
-                          folder_name='/home/travail/dabeaq/litiv/stereo/eff_dl_stereo_match/logs/run_2018y_9m_11d_16h_46min_5sec',
-                          fold='3')
+test_fold3 = prepare_test(gpuid=gpuid,
+                          test_nb='134',
+                          data_root=fold3,
+                          util_root=util_root,
+                          tb=tb,
+                          psz=patch_size,
+                          half_range=half_range,
+                          fold='3',
+                          weights='/home/travail/dabeaq/litiv/masters/pbvs2019/cnn-rgbir/stereo/pretrain/parameters/weights3.t7',
+                          bn='/home/travail/dabeaq/litiv/masters/pbvs2019/cnn-rgbir/stereo/pretrain/parameters/bn3.t7')
 
 subprocess.call(test_fold1)
 subprocess.call(test_fold2)
