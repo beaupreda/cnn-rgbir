@@ -55,6 +55,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Generating patches location for dataset..." << std::endl;
     unsigned int totalPoints = 0;
+    ImageReader imgReader;
     std::vector<std::vector<float>> validPoints;
     for (auto it : mixReader.getImagePoints()) {
         imgReader.readImagesFromPath(RECTIFIED_TRAIN_LOCATION, it.first, PNG_EXTENSION);
@@ -106,7 +107,7 @@ int main(int argc, char* argv[]) {
 
     //////////// validation ////////////
     std::cout << "Starting patch generation for validation data..." << std::endl;
-    mr.read(VAL_MAP);
+    mr.read(VALIDATION_MAP);
 
     for (auto itAll : mr.getMapping())
         mixReader.readFile(itAll.second);
@@ -115,7 +116,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Generating patches location for dataset..." << std::endl;
     totalPoints = 0;
     for (auto it : mixReader.getImagePoints()) {
-        imgReader.readImagesFromPath(ALL_RECTIFIED_VAL_LOCATION, it.first, PNG_EXTENSION);
+        imgReader.readImagesFromPath(RECTIFIED_VALIDATION_LOCATION, it.first, PNG_EXTENSION);
         totalPoints += 3 * it.second.first.size();
         for (int i = 0; i < it.second.first.size(); ++i) {
             PatchCreator centerPatch(it.second.first[i], it.second.second[i], std::stoi(it.first));
@@ -153,7 +154,7 @@ int main(int argc, char* argv[]) {
     //////////// save to binary file ////////////
     std::cout << "Saving patches location to binary file..." << std::endl;
     std::cout << std::endl << std::endl;
-    bw.setFilename(ALL_BIN_LOC_VAL, BIN_EXTENSION);
+    bw.setFilename(BIN_LOC_VALIDATION, BIN_EXTENSION);
     bw.writePointsToFile(validPoints);
     auto val = validPoints;
 
@@ -164,7 +165,7 @@ int main(int argc, char* argv[]) {
 
     //////////// testing ////////////
     std::cout << "Starting patch generation for testing data..." << std::endl;
-    mr.read(ALL_TEST_MAP);
+    mr.read(TEST_MAP);
 
     for (auto itAll : mr.getMapping())
         mixReader.readFile(itAll.second);
@@ -173,7 +174,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Generating patches location for dataset..." << std::endl;
     totalPoints = 0;
     for (auto it : mixReader.getImagePoints()) {
-        imgReader.readImagesFromPath(ALL_RECTIFIED_TEST_LOCATION, it.first, PNG_EXTENSION);
+        imgReader.readImagesFromPath(RECTIFIED_TEST_LOCATION, it.first, PNG_EXTENSION);
         totalPoints += 3 * it.second.first.size();
         for (int i = 0; i < it.second.first.size(); ++i) {
             PatchCreator centerPatch(it.second.first[i], it.second.second[i], std::stoi(it.first));

@@ -26,7 +26,7 @@ cv::Point2i PatchCreator::getLwirCenter() const {
     return this->lwirCenter;
 }
 
-void PatchCreator::savePoints(std::vector<std::vector<float>>& validPoints,) {
+void PatchCreator::savePoints(std::vector<std::vector<float>>& validPoints) {
     float type = 1.0;
     std::vector<float> points = {static_cast<float>(this->frameNumber), type, static_cast<float>(this->rgbCenter.x),
                                  static_cast<float>(this->rgbCenter.y), static_cast<float>(this->lwirCenter.x)};

@@ -1,6 +1,5 @@
 #include "YamlReader.h"
 #include "TextReader.h"
-#include "KaistReader.h"
 
 #define GAB_ID "bilodeauIR"
 #define PLSC_ID "stcharles2018-v04"

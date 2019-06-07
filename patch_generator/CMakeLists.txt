@@ -27,7 +27,6 @@ set(src_files src/main.cpp
         include/VisualVerificator.h
         include/BinaryWriter.h
         include/MixReader.h
-        include/KaistReader.h
         src/ImageReader.cpp
         src/GtReader.cpp
         src/YamlReader.cpp
@@ -38,8 +37,7 @@ set(src_files src/main.cpp
         src/MapReader.cpp
         src/VisualVerificator.cpp
         src/BinaryWriter.cpp
-        src/MixReader.cpp
-        src/KaistReader.cpp)
+        src/MixReader.cpp)
 
 add_executable(PatchGenerator ${src_files})
 
