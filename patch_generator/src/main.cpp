@@ -12,12 +12,12 @@
 
 #define PLSC_LOCATION "/store/dabeaq/datasets/litiv/stcharles2018-v04/"
 #define GAB_LOCATION "/store/dabeaq/datasets/bilodeauIR/"
-#define RECTIFIED_TRAIN_LOCATION "../../test_dataset_1_mix_art/train/"
-#define RECTIFIED_VALIDATION_LOCATION "../../test_dataset_1_mix_art/validation/"
-#define RECTIFIED_TEST_LOCATION "../../test_dataset_1_mix_art/test/"
-#define TRAIN_MAP "../../test_dataset_1_mix_art/train/map.txt"
-#define VALIDATION_MAP "../../test_dataset_1_mix_art/validation/map.txt"
-#define TEST_MAP "../../test_dataset_1_mix_art/test/map.txt"
+#define RECTIFIED_TRAIN_LOCATION "../../dataset3/train/"
+#define RECTIFIED_VALIDATION_LOCATION "../../dataset3/validation/"
+#define RECTIFIED_TEST_LOCATION "../../dataset3/test/"
+#define TRAIN_MAP "../../dataset3/train/map.txt"
+#define VALIDATION_MAP "../../dataset3/validation/map.txt"
+#define TEST_MAP "../../dataset3/test/map.txt"
 #define HALF_WIDTH 1
 #define HALF_RANGE 2
 #define OFFSET 0
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
     //////////// verification ////////////
 #if VERIFICATION
     std::cout << "Starting visual verification..." << std::endl;
-    vs.showAllPoints(validPointsGab, RECTIFIED_VALIDATION_LOCATION, PNG_EXTENSION);
+    vs.showAllPoints(validPoints, RECTIFIED_VALIDATION_LOCATION, PNG_EXTENSION);
     for (auto point : validPoints)
         vs.showPatches(halfWidth, halfRange, point, RECTIFIED_VALIDATION_LOCATION, PNG_EXTENSION);
 #endif
@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
     //////////// verification ////////////
 #if VERIFICATION
     std::cout << "Starting visual verification..." << std::endl;
-    vs.showAllPoints(validPointsGab, RECTIFIED_TEST_LOCATION, PNG_EXTENSION);
+    vs.showAllPoints(validPoints, RECTIFIED_TEST_LOCATION, PNG_EXTENSION);
     for (auto point : validPoints)
         vs.showPatches(halfWidth, halfRange, point, RECTIFIED_TEST_LOCATION, PNG_EXTENSION);
 #endif
