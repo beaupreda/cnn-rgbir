@@ -404,7 +404,8 @@ def main():
         intersect_tr_test = list(set(train[image_type]).intersection(set(test[image_type])))
         intersect_val_test = list(set(val[image_type]).intersection(set(test[image_type])))
         if intersect_tr_val or intersect_tr_test or intersect_val_test:
-            print('PROBLEM')
+            print('PROBLEM!! Data separation is not OK')
+            return
         else:
             print('Data separation is OK (no intersections)')
     folders = ['train', 'validation', 'test']

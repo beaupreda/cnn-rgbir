@@ -1,5 +1,5 @@
 # Siamese CNNs for RGB-LWIR Disparity Estimation
-This repository contains all the code to reproduce the experiments in our paper. It is separated into three modules.
+This repository contains all the code to reproduce the experiments in our paper [Siamese CNNs for RGB-LWIR Disparity Estimation](). It is separated into three modules.
 
 * Patch Generator: Generates the disparity locations (center of patches) for training, validation and testing set.
 * Rectification: Rectifies images of the St-Charles dataset.
@@ -16,5 +16,7 @@ Please refer to README files in each module for more details.
 * [Stereo](./stereo/README.md)
 
 ### Dataset
+Simply put both datasets in a folder named "litiv".
+
 * [LITIV dataset](https://share.polymtl.ca/alfresco/service/api/path/content;cm:content/workspace/SpacesStore/Company%20Home/Sites/litiv-web/documentLibrary/Datasets/BilodeauetAlInfraredDataset.zip?a=true&guest=true)
 * [St-Charles dataset]()

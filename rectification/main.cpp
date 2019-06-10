@@ -115,9 +115,6 @@ int main(int, char**) {
         lv::IDataHandlerPtrArray vpBatches = pDataset->getBatches(false); // returns a list of batches (sequences, in this case) to process
         const size_t nTotBatches = vpBatches.size(); // number of batches (sequences) to process
         lvAssert(nTotBatches>0u); // litiv2018 dataset should not be empty...
-        std::ofstream vid04("/home/travail/dabeaq/litiv/stereo/patch_generator/vid04_points.txt");
-        std::ofstream vid07("/home/travail/dabeaq/litiv/stereo/patch_generator/vid07_points.txt");
-        std::ofstream vid08("/home/travail/dabeaq/litiv/stereo/patch_generator/vid08_points.txt");
         int cnt = 0;
         for(lv::IDataHandlerPtr pBatch : vpBatches) { // process one sequence at a time
             DatasetType::WorkBatch& oBatch = dynamic_cast<DatasetType::WorkBatch&>(*pBatch); // cast batch to proper interface for i/o
@@ -179,7 +176,6 @@ int main(int, char**) {
                         // if displaying disparity groundtruth, we will draw corresponding points on both frames with a depth-scaled color
                         cv::Mat oDispMask = vCurrGT[a].clone();
                         if(!oDispMask.empty() && cv::countNonZero(oDispMask!=lv::ILITIVStCharles2018Dataset::s_nDontCareDispLabel)>0) {
-                            std::cout << "SAVING IMAGES" << std::endl;
                             std::string nameNoExtension = getName(nCurrIdx);
                             std::vector<int> compression_params;
                             compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
@@ -196,25 +192,6 @@ int main(int, char**) {
                                         const cv::Vec3b vColor = lv::getBGRFromHSL(((float(std::min(std::max(nCurrDisp,nMinDisp),nMaxDisp))-nMinDisp)/(nMaxDisp-nMinDisp))*240,1.0f,0.5f);
                                         oColorMap.at<cv::Vec3b>(nRowIdx,nColIdx) = vColor;
                                         oLUMap.at<uchar>(nRowIdx,nColIdx) = 255;
-                                        if (oBatch.getName() == "vid04") {
-                                            vid04 << (int)nCurrIdx << " " << (int)a << " " << (int)nRowIdx << " " << (int)nColIdx << std::endl;
-                                            /*vid04.write(reinterpret_cast<const char*>(&nCurrIdx), sizeof(nCurrIdx));
-                                            vid04.write(reinterpret_cast<const char*>(&a), sizeof(a));
-                                            vid04.write(reinterpret_cast<const char*>(&nRowIdx), sizeof(nRowIdx));
-                                            vid04.write(reinterpret_cast<const char*>(&nColIdx), sizeof(nColIdx));*/
-                                        } else if (oBatch.getName() == "vid07") {
-                                            vid07 << std::to_string(nCurrIdx) << " " << std::to_string(a) << " " << std::to_string(nRowIdx) << " " << std::to_string(nColIdx) << std::endl;
-                                            /*vid07.write(reinterpret_cast<const char*>(&nCurrIdx), sizeof(nCurrIdx));
-                                            vid07.write(reinterpret_cast<const char*>(&a), sizeof(a));
-                                            vid07.write(reinterpret_cast<const char*>(&nRowIdx), sizeof(nRowIdx));
-                                            vid07.write(reinterpret_cast<const char*>(&nColIdx), sizeof(nColIdx));*/
-                                        } else {
-                                            vid08 << nCurrIdx << " " << a << " " << nRowIdx << " " << nColIdx << std::endl;
-                                            /*vid08.write(reinterpret_cast<const char*>(&nCurrIdx), sizeof(nCurrIdx));
-                                            vid08.write(reinterpret_cast<const char*>(&a), sizeof(a));
-                                            vid08.write(reinterpret_cast<const char*>(&nRowIdx), sizeof(nRowIdx));
-                                            vid08.write(reinterpret_cast<const char*>(&nColIdx), sizeof(nColIdx));*/
-                                        }
                                     }
                                 }
                             }

@@ -18,7 +18,7 @@ list(APPEND CMAKE_PREFIX_PATH
 ################################################################
 
 # name of the cmake project that we are creating (will be the name of your solution)
-project(litiv-ext-test)
+project(rectification)
 # minimum c++ standard to use (required by the LITIV framework)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -33,11 +33,11 @@ endif()
 set(litiv_DIR "/store/dabeaq/litiv/build/install")
 find_package(litiv REQUIRED)
 # here, we create an executable with a simple source file (main.cpp) that prints info about the framework
-add_executable(litiv-ext-test main.cpp)
+add_executable(rectification main.cpp)
 # we link the global module of the framework (litiv_world) to our executable target (litiv-ext-test)
-target_link_libraries(litiv-ext-test litiv_world)
+target_link_libraries(rectification litiv_world)
 # finally, we specify the include directories for external dependencies of the framework
-target_include_directories(litiv-ext-test
+target_include_directories(rectification
     PUBLIC
         ${LITIV_EXT_INCLUDE_DIRS}
 )
