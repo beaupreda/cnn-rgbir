@@ -167,7 +167,7 @@ class StCharlesLoader(DataLoader):
     VID07 = 'vid07'
     VID08 = 'vid08'
     FOLDERS = [VID04, VID07, VID08]
-    RECTIFIED_IMAGES = 'rectified_images_v2'
+    RECTIFIED_IMAGES = 'rectified'
     YAML_EXTENSION = '.yml'
     GT_DISP = '_gt_disp/'
 
@@ -386,7 +386,7 @@ def main():
     JPG_EXTENSION = '.jpg'
 
     input_parser = InputParser()
-    input_parser.add_arguments('--fold', '3', 'Fold to generate data')
+    input_parser.add_arguments('--fold', '1', 'Fold to generate data')
     input_parser.add_arguments('--config', '/home/travail/dabeaq/litiv/masters/pbvs2019/cnn-rgbir/shared/config.yml', 'Path to the configuration file')
     args = input_parser.get_arguments()
 
