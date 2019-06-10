@@ -1,8 +1,7 @@
 import argparse
-import math
 import os
 import random
-import sys
+import yaml
 from collections import defaultdict
 from enum import IntEnum
 from PIL import Image
@@ -37,6 +36,20 @@ class FileLogger:
 
     def write(self, message, index):
         self.files[index].write(message)
+
+
+class YamlReader:
+    def __init__(self, filename):
+        self.filename = filename
+
+    def parse(self):
+        config = None
+        with open(self.filename, 'r') as file:
+            try:
+                config = yaml.safe_load(file)
+            except yaml.YAMLError as exception:
+                print(exception)
+        return config
 
 
 class DataLoader:
@@ -80,18 +93,18 @@ class DataLoader:
     def mirror(self, data):
         for image_type in DataLoader.IMAGES_TYPE:
             print('Mirror images for ' + image_type)
-            i = 0
+            i = 1
             maximum = len(data[image_type])
             for image_name in data[image_type]:
+                print(str(i) + ' ' + DataLoader.SEPARATOR + ' ' + str(maximum))
+                i += 1
                 if image_name.find('mirror') < 0:
-                    print(str(i) + ' / ' + str(maximum))
-                    i += 1
                     image = Image.open(image_name)
                     image = image.transpose(Image.FLIP_LEFT_RIGHT)
                     split_name = image_name.split('.')
                     name = split_name[0]
                     extension = '.' + split_name[1]
-                    filename = os.path.join(name + '_mirror' + extension)
+                    filename = os.path.join(name + DataLoader.MIRROR + extension)
                     image.save(filename)
                 else:
                     print('Mirror image already exists')                
@@ -373,20 +386,32 @@ def main():
     JPG_EXTENSION = '.jpg'
 
     input_parser = InputParser()
-    input_parser.add_arguments('--stcharles_dir', '/store/dabeaq/datasets/litiv/stcharles2018-v04/rectified_images_v2/', 'Directory containing rectified images for all videos (execute rectification)')
-    input_parser.add_arguments('--bilodeau_dir', '/store/dabeaq/datasets/bilodeauIR/Dataset/', 'Directory containing rectified images for all videos (already rectified)')
-    input_parser.add_arguments('--out_dir', '/home/travail/dabeaq/litiv/masters/pbvs2019/cnn-rgbir/dataset', 'Location of the output images')
-    input_parser.add_arguments('--fold', '1', 'Fold to generate the data')
+    input_parser.add_arguments('--fold', '3', 'Fold to generate data')
+    input_parser.add_arguments('--config', '/home/travail/dabeaq/litiv/masters/pbvs2019/cnn-rgbir/shared/config.yml', 'Path to the configuration file')
     args = input_parser.get_arguments()
 
-    stcharles = StCharlesLoader(args.stcharles_dir, PNG_EXTENSION)
-    bilodeau = BilodeauLoader(args.bilodeau_dir, JPG_EXTENSION, args.fold)
+    yml = YamlReader(args.config)
+    config = yml.parse()
+    if config is None:
+        return
+
+    stcharles = StCharlesLoader(config['rectified_sc_root'], PNG_EXTENSION)
+    bilodeau = BilodeauLoader(config['rectified_litiv_root'], JPG_EXTENSION, args.fold)
     stcharles.mirror_images()
     bilodeau.mirror_images()
     stcharles.load_data()
     bilodeau.load_data()
-    
-    output = args.out_dir + args.fold
+
+    output = config['output_dataset']
+    if int(args.fold) == config['fold1']['id']:
+        output = os.path.join(output, 'dataset_fold1')
+    elif int(args.fold) == config['fold2']['id']:
+        output = os.path.join(output, 'dataset_fold2')
+    elif int(args.fold) == config['fold3']['id']:
+        output = os.path.join(output, 'dataset_fold3')
+    else:
+        output = os.path.join(output, 'dataset')
+
     if not os.path.exists(output):
         os.mkdir(output)
     

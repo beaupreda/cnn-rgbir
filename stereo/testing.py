@@ -5,7 +5,6 @@ simply calls corresponding lua script with chosen arguments
 David-Alexandre Beaupre
 '''
 
-
 import os
 import subprocess
 

@@ -28,6 +28,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #define BATCH_START_IDX 508 // will be used below to skip empty frames at the beginning of each sequence
+#define CONFIG_PATH "/home/travail/dabeaq/litiv/masters/pbvs2019/cnn-rgbir/shared/config.yml"
+#define KEY_RECTIFIED_SC_ROOT "rectified_sc_root:"
+#define KEY_DATASET_ROOT "datasets_root:"
 
 #include <bits/stdc++.h>
 #include <iostream>
@@ -63,11 +66,41 @@ void create_folders(const std::string& saveLocation) {
     }
 }
 
+// remove "" at the beginning and the end of the string
+std::string trim(const std::string& line) {
+    std::string new_string;
+    for (int i = 1; i < line.length() - 1; i++)
+        new_string += line[i];
+    return new_string;
+}
+
+void get_relevant_info(const std::string& filename, std::string& save, std::string& dataset) {
+    std::ifstream reader(filename);
+    std::string line, key, value, data, sc;
+    int count = 0;
+    while (!reader.eof() && count < 2) {
+        reader >> key;
+        if (key[0] != '#') {
+            reader >> value;
+            if (key == KEY_DATASET_ROOT) {
+                dataset = trim(value);
+                count++;
+            } else if (key == KEY_RECTIFIED_SC_ROOT) {
+                save = trim(value);
+                count++;
+            }
+        }
+        getline(reader, line);
+    }
+}
+
 int main(int, char**) {
     try {
-        const std::string SAVE_VIDEO = "/store/dabeaq/datasets/litiv/stcharles2018-v04/rectified_images_v2/";
+        std::string save_video;
+        std::string dataset_root;
+        get_relevant_info(CONFIG_PATH, save_video, dataset_root);
         const std::string PNG_EXTENSION = ".png";
-        create_folders(SAVE_VIDEO);
+        create_folders(save_video);
         bool bDisplayRectifData = true;
         bool bDisplayDisparityGT = true;
         // first, we ask the user which kind of evaluation mask to visualize (segmentation maps, or disparity corresp maps)
@@ -80,6 +113,7 @@ int main(int, char**) {
             if(sViewMode=="0")
                 bDisplayRectifData = false;
         }
+        lv::datasets::setRootPath(dataset_root);
         DatasetType::Ptr pDataset;
         // we will now try to load the dataset using the default cmake-provided location for the external data root; unless it was already
         // specified by the user, the importation will fail, and the correct directory will have to be provided at run time.
@@ -180,9 +214,9 @@ int main(int, char**) {
                             std::vector<int> compression_params;
                             compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
                             compression_params.push_back(9);
-                            cv::imwrite(SAVE_VIDEO + oBatch.getName() + "/rgb/" + nameNoExtension + PNG_EXTENSION,
+                            cv::imwrite(save_video + oBatch.getName() + "/rgb/" + nameNoExtension + PNG_EXTENSION,
                                         vCurrInputs[0], compression_params);
-                            cv::imwrite(SAVE_VIDEO + oBatch.getName() + "/lwir/" + nameNoExtension + PNG_EXTENSION,
+                            cv::imwrite(save_video + oBatch.getName() + "/lwir/" + nameNoExtension + PNG_EXTENSION,
                                         vCurrInputs[1], compression_params);
                             cv::Mat oColorMap(oDispMask.size(),CV_8UC3,cv::Scalar_<uchar>::all(0)),oLUMap(oDispMask.size(),CV_8UC1,cv::Scalar_<uchar>::all(0));
                             for(int nRowIdx=0; nRowIdx<oDispMask.rows; ++nRowIdx) {
