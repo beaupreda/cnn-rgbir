@@ -23,14 +23,14 @@ function TrainDataHandler:__init(data_root, util_root, train_nb, validation_nb, 
     self.training_ptr = 0
     self.curr_epoch = 0
 
-    local name = string.format('%s/train%d.bin', util_root, self.fold)
+    local name = string.format('%s/train.bin', util_root)
     local file = io.open(name, 'r')
     local size = file:seek('end')
     size = size / 4
     self.train_locations = torch.FloatTensor(torch.FloatStorage(name, false, size)):view(-1,5)
     self.train_permutations = torch.randperm((#self.train_locations)[1])
 
-    name = string.format('%s/validation%d.bin', util_root, self.fold)
+    name = string.format('%s/validation.bin', util_root)
     file = io.open(name, 'r')
     size = file:seek('end')
     size = size / 4
@@ -43,8 +43,8 @@ function TrainDataHandler:__init(data_root, util_root, train_nb, validation_nb, 
     print(string.format('#training locations: %d -- #validation locations: %d', (#self.train_locations)[1], (#self.validation_permutations)[1]))
 
     local i = 0
-    for j = i, train_nb do
-        xlua.progress(j, train_nb)
+    for j = i, train_nb - 1 do
+        xlua.progress(j + 1, train_nb)
         local rgb = image.load(string.format('%s/train/rgb/%d.png', data_root, j), self.channels, 'byte'):float()
         local lwir = image.load(string.format('%s/train/lwir/%d.png', data_root, j), self.channels, 'byte'):float()
         rgb:add(-rgb:mean()):div(rgb:std())
@@ -53,9 +53,9 @@ function TrainDataHandler:__init(data_root, util_root, train_nb, validation_nb, 
         self.lwir[j] = lwir
     end
 
-    i = i + train_nb + 1
-    for j = i, validation_nb do
-        xlua.progress(j, validation_nb)
+    i = i + train_nb
+    for j = i, train_nb + validation_nb - 1 do
+        xlua.progress(j + 1 - train_nb, validation_nb)
         local rgb = image.load(string.format('%s/validation/rgb/%d.png', data_root, j), self.channels, 'byte'):float()
         local lwir = image.load(string.format('%s/validation/lwir/%d.png', data_root, j), self.channels, 'byte'):float()
         rgb:add(-rgb:mean()):div(rgb:std())
@@ -66,16 +66,16 @@ function TrainDataHandler:__init(data_root, util_root, train_nb, validation_nb, 
 
     print(string.format('receptive field size: %d; total range: %d', self.pSize, self.half_range*2+1))
 
-    self.bleft_rgb = torch.Tensor(self.batch_size, self.channels_rgb, self.pSize, self.pSize)
-    self.bleft_lwir = torch.Tensor(self.batch_size, self.channels_ir, self.pSize, self.pSize + self.half_range * 2)
-    self.bright_lwir = torch.Tensor(self.batch_size, self.channels_rgb, self.pSize, self.pSize)
-    self.bright_rgb = torch.Tensor(self.batch_size, self.channels_ir, self.pSize, self.pSize + self.half_range * 2)
+    self.bleft_rgb = torch.Tensor(self.batch_size, self.channels, self.pSize, self.pSize)
+    self.bleft_lwir = torch.Tensor(self.batch_size, self.channels, self.pSize, self.pSize + self.half_range * 2)
+    self.bright_lwir = torch.Tensor(self.batch_size, self.channels, self.pSize, self.pSize)
+    self.bright_rgb = torch.Tensor(self.batch_size, self.channels, self.pSize, self.pSize + self.half_range * 2)
     self.blabels = torch.Tensor(self.batch_size, 1):fill(self.half_range + 1)
 
-    self.vleft_rgb = torch.Tensor(validation_points, self.channels_rgb, self.pSize, self.pSize)
-    self.vleft_lwir = torch.Tensor(validation_points, self.channels_ir, self.pSize, self.pSize + self.half_range * 2)
-    self.vright_lwir = torch.Tensor(validation_points, self.channels_rgb, self.pSize, self.pSize)
-    self.vright_rgb = torch.Tensor(validation_points, self.channels_ir, self.pSize, self.pSize + self.half_range * 2)
+    self.vleft_rgb = torch.Tensor(validation_points, self.channels, self.pSize, self.pSize)
+    self.vleft_lwir = torch.Tensor(validation_points, self.channels, self.pSize, self.pSize + self.half_range * 2)
+    self.vright_lwir = torch.Tensor(validation_points, self.channels, self.pSize, self.pSize)
+    self.vright_rgb = torch.Tensor(validation_points, self.channels, self.pSize, self.pSize + self.half_range * 2)
     self.vlabels = torch.Tensor(validation_points, 1):fill(self.half_range + 1)
 
     for i = 1, validation_points do
@@ -108,7 +108,7 @@ end
 function TrainDataHandler:next_batch()
     for idx = 1, self.batch_size do
         local i = self.training_ptr + idx
-        if i > torch.numel(self.tr_perm) then
+        if i > torch.numel(self.train_permutations) then
             i = 1
             self.training_ptr = -idx + 1
         end

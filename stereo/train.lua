@@ -38,6 +38,39 @@ opt = lapp[[
     --fold                     (default 1)                  fold number (1, 2 or 3)
 ]]
 
+-- each run is saved in a folder identified by the start time of the execution
+local function get_folder_name()
+    local date_table = os.date('*t')
+    local year, month, day = date_table.year, date_table.month, date_table.day
+    local hour, minute, second = date_table.hour, date_table.min, date_table.sec
+    local result = string.format('run_%dy_%dm_%dd_%dh_%dmin_%dsec', year, month, day, hour, minute, second)
+    return result
+end
+
+function save_arguments()
+    argsFile:write(string.format('Parameter                    Definition                                        Value\n'))
+    argsFile:write(string.format('--data_root                  images location                                   %s\n', opt.data_root))
+    argsFile:write(string.format('--util_root                  binary files location                             %s\n', opt.util_root))
+    argsFile:write(string.format('--batchSize                  batch size                                        %d\n', opt.batchSize))
+    argsFile:write(string.format('--train_nb                   number of training images                         %d\n', opt.train_nb))
+    argsFile:write(string.format('--validation_nb              number of validation images                       %d\n', opt.validation_nb))
+    argsFile:write(string.format('--learningRate               learning rate                                     %f\n', opt.learningRate))
+    argsFile:write(string.format('--learningRateDecay          decay of learning rate                            %f\n', opt.learningRateDecay))
+    argsFile:write(string.format('--weightDecay                weight decay                                      %f\n', opt.weightDecay))
+    argsFile:write(string.format('--momentum                   momentum                                          %f\n', opt.momentum))
+    argsFile:write(string.format('--epoch_step                 half learning rate at every epoch step            %d\n', opt.epoch_step))
+    argsFile:write(string.format('--weight_epoch               save weight at every weight epoch                 %d\n', opt.weight_epoch))
+    argsFile:write(string.format('--max_epoch                  maximum number of iterations                      %d\n', opt.max_epoch))
+    argsFile:write(string.format('--iter_per_epoch             evaluate every # of iterations                    %d\n', opt.iter_per_epoch))
+    argsFile:write(string.format('--tb                         validation batch size                             %d\n', opt.tb))
+    argsFile:write(string.format('--validation_points          number of validation patch pair                   %d\n', opt.validation_points))
+    argsFile:write(string.format('--opt_method                 optimization method (sgd, adam, adagrad)          %s\n', opt.opt_method))
+    argsFile:write(string.format('--showCurve                  show or not accuracy curves                       %d\n', opt.showCurve))
+    argsFile:write(string.format('--psz                        half width                                        %d\n', opt.psz))
+    argsFile:write(string.format('--half_range                 half range                                        %d\n', opt.half_range))
+    argsFile:write(string.format('--fold                       fold number (1, 2 or 3)                           %d\n', opt.fold))
+end
+
 print(c.blue '==>' ..' configuring model')
 
 torch.manualSeed(42)
@@ -101,7 +134,7 @@ function train()
             local output = model:forward({{left_rgb, left_lwir}, {right_lwir, right_rgb}})
             local f = criterion:forward(output, target)
             local gradient = criterion:backward(output, target)
-            model:backward({{left_rgb, left_lwir}, {right_rgb, right_lwir}}, gradient)
+            model:backward({{left_rgb, left_lwir}, {right_lwir, right_rgb}}, gradient)
             local _, y = output:max(2)
             y = y:long():cuda()
             -- 3 pixel error
@@ -125,20 +158,20 @@ function evaluate()
     local nb_points = (#left_rgb)[1]
     loss = -1
 
-    assert(math.fmod(n, opt.tb) == 0, "use opt.tb to be divided exactly by number of validate sample")
+    assert(math.fmod(nb_points, opt.tb) == 0, "use opt.tb to be divided exactly by number of validate sample")
     local good_predictions = 0
     for i = 1, nb_points, opt.tb do
         output = model:forward({{left_rgb:narrow(1, i, opt.tb), left_lwir:narrow(1, i, opt.tb)}, {right_lwir:narrow(1, i, opt.tb), right_rgb:narrow(1, i, opt.tb)}})
         local f = criterion:forward(output, target)
-        local _, y = o:max(2)
+        local _, y = output:max(2)
         y = y:long():cuda()
         -- 3 pixel error
         good_predictions = good_predictions + (torch.abs(y - target:narrow(1, i, opt.tb)):le(3):sum())
         loss = f
     end
 
-    validation_loss = loss / n * 100
-    good_predictions = good_predictions / n * opt.tb
+    validation_loss = loss / nb_points * 100
+    good_predictions = good_predictions / nb_points * opt.tb
     print('Test accuracy: ' .. c.cyan(good_predictions) .. ' %')
     print('Validation loss: ' .. c.cyan(validation_loss))
 
@@ -172,39 +205,6 @@ function logging( )
 
         if #bn_mean > 0 then torch.save(filename, {bn_mean, bn_var}) end
     end
-end
-
--- each run is saved in a folder identified by the start time of the execution
-local function get_folder_name()
-    local date_table = os.date('*t')
-    local year, month, day = date_table.year, date_table.month, date_table.day
-    local hour, minute, second = date_table.hour, date_table.min, date_table.sec
-    local result = string.format('run_%dy_%dm_%dd_%dh_%dmin_%dsec', year, month, day, hour, minute, second)
-    return result
-end
-
-function save_arguments()
-    argsFile:write(string.format('Parameter                    Definition                                        Value\n'))
-    argsFile:write(string.format('--data_root                  images location                                   %s\n', opt.data_root))
-    argsFile:write(string.format('--util_root                  binary files location                             %s\n', opt.util_root))
-    argsFile:write(string.format('--batchSize                  batch size                                        %d\n', opt.batchSize))
-    argsFile:write(string.format('--train_nb                   number of training images                         %d\n', opt.train_nb))
-    argsFile:write(string.format('--validation_nb              number of validation images                       %d\n', opt.validation_nb))
-    argsFile:write(string.format('--learningRate               learning rate                                     %f\n', opt.learningRate))
-    argsFile:write(string.format('--learningRateDecay          decay of learning rate                            %f\n', opt.learningRateDecay))
-    argsFile:write(string.format('--weightDecay                weight decay                                      %f\n', opt.weightDecay))
-    argsFile:write(string.format('--momentum                   momentum                                          %f\n', opt.momentum))
-    argsFile:write(string.format('--epoch_step                 half learning rate at every epoch step            %d\n', opt.epoch_step))
-    argsFile:write(string.format('--weight_epoch               save weight at every weight epoch                 %d\n', opt.weight_epoch))
-    argsFile:write(string.format('--max_epoch                  maximum number of iterations                      %d\n', opt.max_epoch))
-    argsFile:write(string.format('--iter_per_epoch             evaluate every # of iterations                    %d\n', opt.iter_per_epoch))
-    argsFile:write(string.format('--tb                         validation batch size                             %d\n', opt.tb))
-    argsFile:write(string.format('--validation_points          number of validation patch pair                   %d\n', opt.validation_points))
-    argsFile:write(string.format('--opt_method                 optimization method (sgd, adam, adagrad)          %s\n', opt.opt_method))
-    argsFile:write(string.format('--showCurve                  show or not accuracy curves                       %d\n', opt.showCurve))
-    argsFile:write(string.format('--psz                        half width                                        %d\n', opt.psz))
-    argsFile:write(string.format('--half_range                 half range                                        %d\n', opt.half_range))
-    argsFile:write(string.format('--fold                       fold number (1, 2 or 3)                           %d\n', opt.fold))
 end
 
 while epoch < opt.max_epoch do
