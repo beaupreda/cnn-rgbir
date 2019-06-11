@@ -12,7 +12,7 @@ require 'io'
 
 local TrainDataHandler = torch.class('TrainDataHandler')
 
-function TrainDataHandler:__init(data_root, util_root, train_nb, validation_nb, validation_points, batch_size, psz, half_range, fold, gpu)
+function TrainDataHandler:__init(data_root, training, validation, train_nb, validation_nb, validation_points, batch_size, psz, half_range, fold, gpu)
     self.fold = fold
     self.channels = 3
     self.batch_size = batch_size
@@ -23,14 +23,14 @@ function TrainDataHandler:__init(data_root, util_root, train_nb, validation_nb, 
     self.training_ptr = 0
     self.curr_epoch = 0
 
-    local name = string.format('%s/train.bin', util_root)
+    local name = string.format('%s', training)
     local file = io.open(name, 'r')
     local size = file:seek('end')
     size = size / 4
     self.train_locations = torch.FloatTensor(torch.FloatStorage(name, false, size)):view(-1,5)
     self.train_permutations = torch.randperm((#self.train_locations)[1])
 
-    name = string.format('%s/validation.bin', util_root)
+    name = string.format('%s', validation)
     file = io.open(name, 'r')
     size = file:seek('end')
     size = size / 4

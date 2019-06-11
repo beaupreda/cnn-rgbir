@@ -16,7 +16,7 @@ lapp = require 'pl.lapp'
 opt = lapp[[
     -s,--save                  (default 'logs/debug')       directory to save logs
     -b,--batchSize             (default 128)                batch size
-    -g, --gpuid                (default 0)                  gpu id
+    -g, --gpu_id                (default 0)                  gpu id
     --train_nb                 (default 10)                 training images
     --validation_nb            (default 1)                  validation images
     -r,--learningRate          (default 1e-2)               learning rate
@@ -28,7 +28,8 @@ opt = lapp[[
     --max_epoch                (default 10)                 maximum number of iterations
     --iter_per_epoch           (default 50)                 evaluate every # iterations, and update plot
     --data_root                (default '')                 dataset root folder
-    --util_root                (default '')                 dataset root folder
+    --training                 (default '')                 path to train location (.bin file)
+    --validation               (default '')                 path to validation location (.bin file)
     --tb                       (default 100)                validation batch size
     --validation_points        (default 10000)              number validation patch pair
     --opt_method               (default 'adam')             sgd, adagrad, adam
@@ -50,7 +51,8 @@ end
 function save_arguments()
     argsFile:write(string.format('Parameter                    Definition                                        Value\n'))
     argsFile:write(string.format('--data_root                  images location                                   %s\n', opt.data_root))
-    argsFile:write(string.format('--util_root                  binary files location                             %s\n', opt.util_root))
+    argsFile:write(string.format('--training                   path to train location (.bin file)                %s\n', opt.training))
+    argsFile:write(string.format('--validation                 path to validation location (.bin file)           %s\n', opt.validation))
     argsFile:write(string.format('--batchSize                  batch size                                        %d\n', opt.batchSize))
     argsFile:write(string.format('--train_nb                   number of training images                         %d\n', opt.train_nb))
     argsFile:write(string.format('--validation_nb              number of validation images                       %d\n', opt.validation_nb))
@@ -74,11 +76,11 @@ end
 print(c.blue '==>' ..' configuring model')
 
 torch.manualSeed(42)
-local gpu = cutorch.setDevice(opt.gpuid+1)
+local gpu = cutorch.setDevice(opt.gpu_id+1)
 torch.setdefaulttensortype('torch.FloatTensor')
 
 print(c.blue '==>' ..' loading data')
-dataset = TrainDataHandler(opt.data_root, opt.util_root, opt.train_nb, opt.validation_nb, opt.validation_points, opt.batchSize, opt.psz, opt.half_range, gpu)
+dataset = TrainDataHandler(opt.data_root, opt.training, opt.validation, opt.train_nb, opt.validation_nb, opt.validation_points, opt.batchSize, opt.psz, opt.half_range, gpu)
 
 -- model creation
 require('model.lua')
@@ -146,8 +148,8 @@ function train()
         train_loss = loss[1]
     end
 
-    accuracy = good_predictions / (opt.iter_per_epoch * opt.batchSize) * 100
-    print(('Train loss: ' .. c.cyan '%.4f' .. ' train accuracy: ' .. c.cyan '%.2f' .. ' %%\t time: %.2f s\t grad/param norm = %6.4e\t learning rate: %f'):format(train_loss / opt.batchSize, accuracy, torch.toc(tic), gradParameters:norm() / parameters:norm(), optimConfig.learningRate))
+    train_accuracy = good_predictions / (opt.iter_per_epoch * opt.batchSize) * 100
+    print(('Train loss: ' .. c.cyan '%.4f' .. ' train accuracy: ' .. c.cyan '%.2f' .. ' %%\t time: %.2f s\t grad/param norm = %6.4e\t learning rate: %f'):format(train_loss / opt.batchSize, train_accuracy, torch.toc(tic), gradParameters:norm() / parameters:norm(), optimConfig.learningRate))
     epoch = epoch + 1
 end
 
@@ -171,8 +173,8 @@ function evaluate()
     end
 
     validation_loss = loss / nb_points * 100
-    good_predictions = good_predictions / nb_points * opt.tb
-    print('Test accuracy: ' .. c.cyan(good_predictions) .. ' %')
+    validation_accuracy = good_predictions / nb_points * opt.tb
+    print('Validation accuracy: ' .. c.cyan(validation_accuracy) .. ' %')
     print('Validation loss: ' .. c.cyan(validation_loss))
 
     if epoch % 10 == 0 then collectgarbage() end
@@ -181,7 +183,7 @@ end
 function logging( )
     if testLogger then
         paths.mkdir(folder_name)
-        testLogger:add{accuracy, good_predictions, train_loss / opt.batchSize, validation_loss}
+        testLogger:add{train_accuracy, validation_accuracy, train_loss / opt.batchSize, validation_loss}
         testLogger:style{'-', '-', '-', '-'}
         testLogger:plot()
         os.execute('convert -density 200 ' .. folder_name .. '/test.log.eps ' .. folder_name .. '/test.png')

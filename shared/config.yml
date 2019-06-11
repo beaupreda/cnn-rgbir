@@ -20,12 +20,34 @@ pretrain_disp_root: "/home/travail/dabeaq/litiv/masters/pbvs2019/cnn-rgbir/stere
 pretrain_param_root: "/home/travail/dabeaq/litiv/masters/pbvs2019/cnn-rgbir/stereo/pretrain/parameters/"
 # gpu id
 gpu_id: 0
-# half width (hyperparameter of model)
+# half width (size of small square patch)
 half_width: 18
-# half range (hyperparameter of model)
+# half range (width of larger patch)
 half_range: 60
+#batch size
+bs: 64
 # test batch size
 tb: 100
+# learning rate
+learning_rate: 0.001
+# learning rate decay
+decay: 0.0000001
+# weight decay
+weight_decay: 0.0005
+# momentum
+momentum: 0.9
+# epoch step
+epoch_step: 40
+# weight epoch
+weight_epoch: 10
+# max epoch
+max_epoch: 200
+# iter per epoch
+iter: 200
+# number of validation points
+validation_points: 10000
+# optimization method
+opt: 'adam'
 # fold1 used in our experiments
 fold1:
   id: 1
