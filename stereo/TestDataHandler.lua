@@ -12,7 +12,7 @@ require 'io'
 
 local TestDataHandler = torch.class('TestDataHandler')
 
-function TestDataHandler:__init(data_root, util_root, img_nb, psz, half_range, fold, gpu, offset)
+function TestDataHandler:__init(data_root, testing, img_nb, psz, half_range, fold, gpu, offset)
     self.fold = fold
     self.channels = 3
     self.psz = psz
@@ -20,7 +20,7 @@ function TestDataHandler:__init(data_root, util_root, img_nb, psz, half_range, f
     self.half_range = half_range
     self.cuda = gpu or 1
 
-    local name = string.format('%s/testing%d.bin', util_root, self.fold)
+    local name = string.format('%s', testing)
     local file = io.open(name, 'r')
     local size = file:seek('end')
     -- every entry in binary file is 4 bytes

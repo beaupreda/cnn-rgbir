@@ -15,10 +15,10 @@ require 'TestDataHandler'
 local c = require 'trepl.colorize'
 lapp = require 'pl.lapp'
 opt = lapp[[
-    -g, --gpuid                (default 0)                     gpu id
+    -g, --gpu_id               (default 0)                     gpu id
     --test_nb                  (default 10)                    number of test images
     --data_root                (default '')                    dataset root folder (images)
-    --util_root                (default '')                    points location root folder (.bin files)
+    --testing                  (default '')                    points to testing location file (.bin file)
     --tb                       (default 100)                   test batch size
     --psz                      (default 18)                    half width
     --half_range               (default 60)                    half range
@@ -33,7 +33,7 @@ bnmeanstd = opt.bn
 print(c.blue '==>' ..' configuring model')
 
 torch.manualSeed(42)
-local gpu = opt.gpuid + 1
+local gpu = opt.gpu_id + 1
 cutorch.setDevice(gpu)
 torch.setdefaulttensortype('torch.FloatTensor')
 
@@ -49,7 +49,7 @@ end
 
 print(c.blue '==>' ..' loading test data')
 
-dataset = TestDataHandler(opt.data_root, opt.util_root, opt.test_nb, opt.psz, opt.half_range, opt.fold, gpu, offset)
+dataset = TestDataHandler(opt.data_root, opt.testing, opt.test_nb, opt.psz, opt.half_range, opt.fold, gpu, offset)
 
 local function load_model()
     require('model.lua')
