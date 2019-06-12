@@ -24,8 +24,14 @@ Please refer to README files in each module for more details. Make sure to chang
 * [Rectification](./rectification/)
 * [Stereo](./stereo/)
 
+### Steps
+1. Rectify the images from the St-Charles dataset with the [Rectification](./rectification) module.
+2. Generate the dataset from the [dataset.py](./stereo/dataset.py) script in the [stereo](./stereo) module.
+3. Generate patch locations with the [Patch Generator](./patch_generator) module.
+4. Train or test the model with the scripts in the [Stereo](./stereo) module.
+
 ## Datasets
-Simply put both datasets in a folder named "litiv".
+Simply put both datasets in a folder named "litiv" where all your datasets are located.
 
 * [LITIV dataset](https://share.polymtl.ca/alfresco/service/api/path/content;cm:content/workspace/SpacesStore/Company%20Home/Sites/litiv-web/documentLibrary/Datasets/BilodeauetAlInfraredDataset.zip?a=true&guest=true)
 * [St-Charles dataset]()
