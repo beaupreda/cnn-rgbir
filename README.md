@@ -37,7 +37,7 @@ Simply put both datasets in a folder named "litiv" where all your datasets are l
 * [St-Charles dataset]()
 
 ## Contact
-For any comments, questions or concerns, feel free to contact me at [david-alexandre.beaupre@polymtl.ca]
+For any comments, questions or concerns, feel free to contact me at david-alexandre.beaupre@polymtl.ca
 
 ## License
 See the LICENSE file for more details.
