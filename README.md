@@ -24,8 +24,14 @@ Please refer to README files in each module for more details. Make sure to chang
 * [Rectification](./rectification/README.md)
 * [Stereo](./stereo/README.md)
 
-### Datasets
+## Datasets
 Simply put both datasets in a folder named "litiv".
 
 * [LITIV dataset](https://share.polymtl.ca/alfresco/service/api/path/content;cm:content/workspace/SpacesStore/Company%20Home/Sites/litiv-web/documentLibrary/Datasets/BilodeauetAlInfraredDataset.zip?a=true&guest=true)
 * [St-Charles dataset]()
+
+## Contact
+For any comments, questions or concerns, feel free to contact me at [david-alexandre.beaupre@polymtl.ca]
+
+## License
+See the LICENSE file for more details.

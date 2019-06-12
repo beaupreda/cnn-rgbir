@@ -4,7 +4,7 @@ datasets_root: "/store/dabeaq/datasets/"
 sc_root: "/store/dabeaq/datasets/litiv/stcharles2018-v04/"
 # path to the LITIV dataset
 litiv_root: "/store/dabeaq/datasets/litiv/bilodeauIR/"
-# path to where you want to have the rectified images from the St-Charles dataset
+# path to where you want to have the rectified images from the St-Charles dataset (must be called rectified)
 rectified_sc_root: "/store/dabeaq/datasets/litiv/stcharles2018-v04/rectified/"
 # path to LITIV dataset with rectified images
 rectified_litiv_root: "/store/dabeaq/datasets/litiv/bilodeauIR/Dataset/"

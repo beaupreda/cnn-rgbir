@@ -256,7 +256,7 @@ class BilodeauLoader(DataLoader):
 
     def __init__(self, path, extension, fold):
         super().__init__(path, extension)
-        self.fold = int(fold)
+        self.fold = fold
 
     def mirror_images(self):
         data = defaultdict(lambda:defaultdict(lambda:defaultdict(list)))
@@ -386,7 +386,7 @@ def main():
     JPG_EXTENSION = '.jpg'
 
     input_parser = InputParser()
-    input_parser.add_arguments('--fold', '1', 'Fold to generate data')
+    input_parser.add_arguments('--fold', 1, 'Fold to generate data')
     input_parser.add_arguments('--config', '/home/travail/dabeaq/litiv/masters/pbvs2019/cnn-rgbir/shared/config.yml', 'Path to the configuration file')
     args = input_parser.get_arguments()
 
@@ -403,11 +403,11 @@ def main():
     bilodeau.load_data()
 
     output = config['output_dataset']
-    if int(args.fold) == config['fold1']['id']:
+    if args.fold == config['fold1']['id']:
         output = os.path.join(output, 'dataset_fold1')
-    elif int(args.fold) == config['fold2']['id']:
+    elif args.fold == config['fold2']['id']:
         output = os.path.join(output, 'dataset_fold2')
-    elif int(args.fold) == config['fold3']['id']:
+    elif args.fold == config['fold3']['id']:
         output = os.path.join(output, 'dataset_fold3')
     else:
         output = os.path.join(output, 'dataset')

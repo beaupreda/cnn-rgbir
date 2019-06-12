@@ -1,4 +1,5 @@
 # Patch Generator
+Generates valid locations (x, y, right_x) for the patches used as input for our network.
 
 ## Usage
 ### Dependencies
