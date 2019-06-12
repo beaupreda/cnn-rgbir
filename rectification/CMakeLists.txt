@@ -2,6 +2,8 @@
 # make sure you are using a fairly recent version of cmake
 cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 
+find_package(yaml-cpp REQUIRED PATHS "/store/dabeaq/yaml")
+
 # these paths are used as hints for finding the dependencies automatically given a predefined environment variable;
 # these should not be needed if you installed all your libraries in a system-default location (e.g. /usr/local/)
 list(APPEND CMAKE_PREFIX_PATH
@@ -35,7 +37,7 @@ find_package(litiv REQUIRED)
 # here, we create an executable with a simple source file (main.cpp) that prints info about the framework
 add_executable(rectification main.cpp)
 # we link the global module of the framework (litiv_world) to our executable target (litiv-ext-test)
-target_link_libraries(rectification litiv_world)
+target_link_libraries(rectification litiv_world ${YAML_CPP_LIBRARIES})
 # finally, we specify the include directories for external dependencies of the framework
 target_include_directories(rectification
     PUBLIC
