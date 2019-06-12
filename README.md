@@ -18,11 +18,11 @@ year = {2019}
 ```
 
 ## Usage
-Please refer to README files in each module for more details. Make sure to change paths and other variables in the [config file](./shared/config.yml) to your own values.
+Please refer to README files in each module for more details. Make sure to change paths and other variables in the [config](./shared/config.yml) file to your own values.
 
-* [Patch Generator](./patch_generator/README.md)
-* [Rectification](./rectification/README.md)
-* [Stereo](./stereo/README.md)
+* [Patch Generator](./patch_generator/)
+* [Rectification](./rectification/)
+* [Stereo](./stereo/)
 
 ## Datasets
 Simply put both datasets in a folder named "litiv".
