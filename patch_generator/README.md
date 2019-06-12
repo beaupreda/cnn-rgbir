@@ -18,5 +18,5 @@ make -j
 ### Generating Patches
 Change line #13 in main.cpp to the location of your config.yml file. Decide the fold number (line #14) and simply execute!
 ```
-./patch_generator
+./PatchGenerator
 ```

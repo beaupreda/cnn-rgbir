@@ -16,10 +16,10 @@ python3 dataset.py --fold [FOLD_NB] --config [PATH TO CONFIG FILE]
 ### Training
 Set up all parameters in the [config](../shared/config.yml) file and simply call the python training script.
 ```
-python3 training.py
+python3 training.py --fold [FOLD_NB] --config [PATH TO CONFIG FILE]
 ```
 ### Testing
 Set up all parameters in the [config](../shared/config.yml) file and simply call the python testing script.
 ```
-python3 testing.py
+python3 testing.py --fold [FOLD_NB] --config [PATH TO CONFIG FILE]
 ```
