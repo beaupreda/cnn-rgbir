@@ -13,6 +13,7 @@ message(STATUS "    libraries: ${OpenCV_LIBS}")
 message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 
 find_package(Boost REQUIRED COMPONENTS system filesystem)
+find_package(yaml-cpp REQUIRED PATHS "/store/dabeaq/yaml")
 include_directories(${Boost_INCLUDE_DIRS})
 
 set(src_files src/main.cpp
@@ -41,4 +42,4 @@ set(src_files src/main.cpp
 
 add_executable(PatchGenerator ${src_files})
 
-target_link_libraries(PatchGenerator ${OpenCV_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(PatchGenerator ${OpenCV_LIBS} ${Boost_LIBRARIES} ${YAML_CPP_LIBRARIES})

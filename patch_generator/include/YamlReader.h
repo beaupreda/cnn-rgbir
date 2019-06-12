@@ -1,3 +1,5 @@
+#include <yaml-cpp/yaml.h>
+
 #include "../include/GtReader.h"
 
 #ifndef PATCHGENERATOR_YAMLREADER_H
@@ -17,6 +19,7 @@ public:
     YamlReader();
     void readFile(const MapLine& mapLine);
     std::string getDispRange(const std::string& filename);
+    YAML::Node parse(const std::string& filename);
 };
 
 #endif //PATCHGENERATOR_YAMLREADER_H

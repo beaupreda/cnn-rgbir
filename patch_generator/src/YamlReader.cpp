@@ -51,3 +51,7 @@ std::string YamlReader::getDispRange(const std::string& filename) {
     return pathToGt + "drange.txt";
 
 }
+
+YAML::Node YamlReader::parse(const std::string& filename) {
+    return YAML::LoadFile(filename);
+}
