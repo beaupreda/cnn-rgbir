@@ -34,7 +34,7 @@ Please refer to README files in each module for more details. Make sure to chang
 Simply put both datasets in a folder named "litiv" where all your datasets are located.
 
 * [LITIV dataset](https://share.polymtl.ca/alfresco/service/api/path/content;cm:content/workspace/SpacesStore/Company%20Home/Sites/litiv-web/documentLibrary/Datasets/BilodeauetAlInfraredDataset.zip?a=true&guest=true)
-* [St-Charles dataset]() Coming soon!
+* [St-Charles dataset](https://polymtlca0-my.sharepoint.com/:f:/g/personal/guillaume-alexandre_bilodeau_polymtl_ca/EkLDtDfApzxBsKKDORwesRABsosIBa19pkzZCLFrVmGUXQ)
 
 ## Contact
 For any comments, questions or concerns, feel free to contact me at david-alexandre.beaupre@polymtl.ca
